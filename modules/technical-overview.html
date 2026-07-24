@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Technical overview · SQLLens Docs</title>
+<meta name="description" content="Technical documentation for SQLLens — MCP and AI database access, Query Optimizer AI features, Excel exports, connection import, workspace credential scan, and engine support matrix." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>Technical overview</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Technical</div>
+      <h1>Technical overview</h1>
+      <p class="lede">Latest SQLLens capabilities — MCP and AI agents, Query Optimizer AI advisory, Excel reporting, connection import, and which engines each feature supports. Written for practitioners who need a concise map of the product surface.</p>
+    </header>
+
+<h2 id="tech-latest">Latest features</h2>
+<p>Recent releases expand AI-assisted tuning, agent access to live databases, and shareable Excel reports across performance modules.</p>
+<ul>
+<li><strong>MCP &amp; AI database</strong> — SQLLens registers as an MCP server; Copilot Agent, Cursor Agent, and <code>@sql</code> / <code>@sqllens</code> chat use saved connection profiles with read-only defaults.</li>
+<li><strong>Index Strategy Studio</strong> — Three tabs on the Query Optimizer Analyze panel: rule-based Index Engine, single-model AI Advisor, and 3 AI compare (LLMs) on MySQL/MariaDB.</li>
+<li><strong>Excel exports</strong> — Standard and Expert workbooks from Query Log Optimizer (QLA), Performance Monitor (PM), Query Profiler, and Query Optimizer (QO).</li>
+<li><strong>Import connections</strong> — Bring in profiles from SQLTools <code>settings.json</code> or DBeaver <code>data-sources.json</code>.</li>
+<li><strong>Workspace credential scan</strong> — On workspace open, scan <code>.env</code> and <code>docker-compose</code> files for database URLs and offer one-click profile creation.</li>
+<li><strong>Multi-engine QO</strong> — Dedicated workbenches for MySQL/MariaDB, PostgreSQL, and SQLite with engine-appropriate plans and index guidance.</li>
+</ul>
+<div class="callout tip"><div class="label">User guides</div><p>Step-by-step walkthroughs live in the module guides — start with <a href="mcp-ai-database.html">MCP &amp; AI database</a> and <a href="query-optimizer.html">Query Optimizer</a>.</p></div>
+
+<h2 id="tech-engine-matrix">Engine support matrix</h2>
+<p>Use the header <strong>engine bar</strong> to filter this site. The table below summarizes feature availability by database engine.</p>
+<table>
+<thead>
+<tr><th>Feature</th><th>MySQL</th><th>MariaDB</th><th>PostgreSQL</th><th>SQLite</th></tr>
+</thead>
+<tbody>
+<tr><td>SQL editor, autocomplete, Query Builder</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Schema designer &amp; object tree</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Query Optimizer (QO)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Index Strategy Studio — Index Engine</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Index Strategy Studio — AI Advisor</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Index Strategy Studio — 3 AI compare (LLMs)</td><td>✓</td><td>✓</td><td>—</td><td>—</td></tr>
+<tr><td>Query rewrites (automatic SQL transforms)</td><td>✓</td><td>✓</td><td>—</td><td>—</td></tr>
+<tr><td>Slow Query Log Analyzer (QLA)</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+<tr><td>Performance Monitor (PM)</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+<tr><td>Query Profiler (session stages)</td><td>✓</td><td>✓</td><td>—</td><td>—</td></tr>
+<tr><td>MCP &amp; <code>@sql</code> / <code>@sqllens</code></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Import connections (SQLTools / DBeaver)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Workspace credential scan</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>QLA / PM / Profiler / QO Excel exports</td><td>✓</td><td>✓</td><td>✓*</td><td>—**</td></tr>
+</tbody>
+</table>
+<p><em>* PostgreSQL: QO and QLA exports where the module is available; PM export follows PM tabs enabled for PostgreSQL.</em><br />
+<em>** SQLite: QO Standard/Expert export when the SQLite Query Optimizer workbench is open.</em></p>
+
+<h2 id="tech-mcp">MCP &amp; AI database</h2>
+<p>SQLLens exposes a built-in <strong>MCP server</strong> so AI clients in VS Code or Cursor can work with your <strong>saved connection profiles</strong> — not ad-hoc connection strings in chat.</p>
+<h3 id="tech-mcp-surfaces">Surfaces</h3>
+<table>
+<thead><tr><th>Surface</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><strong>Copilot Agent / Cursor Agent</strong></td><td>Enable <strong>SQLLens</strong> in the tools picker; ask natural-language questions; the agent chains schema discovery and queries.</td></tr>
+<tr><td><code>@sql</code> and <code>@sqllens</code></td><td>Chat participants with slash commands (<code>/connections</code>, <code>/schema</code>, …) and fenced <code>sql</code> blocks for execution.</td></tr>
+<tr><td>Active SQL tab</td><td>When an editor tab has an <strong>Active</strong> database, MCP and chat default to that connection.</td></tr>
+</tbody>
+</table>
+<h3 id="tech-mcp-scope">Connection scope &amp; safety</h3>
+<ul>
+<li><strong>Read-only by default</strong> — SELECT and schema tools unless you change MCP write policy in Settings.</li>
+<li><strong>No passwords in tool output</strong> — agents see profile names and engine types, not stored secrets.</li>
+<li><strong>One connection + one database per operation</strong> — predictable scope for auditing.</li>
+<li><strong>First-use consent</strong> — a Skyline modal explains access before tools register.</li>
+<li><strong>SQLite</strong> — file-based profiles follow the same MCP tools with path-scoped access.</li>
+</ul>
+<p>Full guide: <a href="mcp-ai-database.html">MCP &amp; AI database access</a>.</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/mcp-sqllens-agent-flow.svg" width="720" height="400" alt="Agent or chat connects through SQLLens MCP to saved profiles and the database." loading="lazy" decoding="async" />
+<figcaption class="caption">High-level MCP flow — editor chat or Agent → SQLLens → saved profile → database.</figcaption>
+</figure>
+
+<h2 id="tech-qo-ai">Query Optimizer — AI advisory</h2>
+<p>The Analyze panel’s <strong>Index Strategy Studio</strong> combines deterministic index rules with optional LLM assistance.</p>
+<h3 id="tech-qo-studio">Index Strategy Studio tabs</h3>
+<table>
+<thead><tr><th>Tab</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><strong>Index Engine</strong></td><td>Rule-based recommendations from execution plan signals — always available, no LLM required.</td></tr>
+<tr><td><strong>AI Advisor</strong></td><td>▶ <em>Run Auto</em> — one LLM suggests index DDL; compare match vs Index Engine.</td></tr>
+<tr><td><strong>3 AI compare (LLMs)</strong></td><td>MySQL/MariaDB only — pick three model slots, <em>Run consensus</em>, ranked cards, <em>Create Index</em> on top picks.</td></tr>
+</tbody>
+</table>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/qo-index-strategy-studio.svg" width="720" height="420" alt="Index Strategy Studio with Index Engine, AI Advisor, and 3 AI compare tabs." loading="lazy" decoding="async" />
+</figure>
+<p>Requires a configured LLM provider (local or cloud-routed). See <a href="query-optimizer.html#qo-index-strategy-studio">Query Optimizer — Index Strategy Studio</a> and <a href="ai-llm-integration.html">LLMs &amp; AI</a>.</p>
+
+<h2 id="tech-exports">Excel exports (Standard &amp; Expert)</h2>
+<p>Performance modules can export structured <strong>.xlsx</strong> workbooks for sharing with DBAs, change review, or archival.</p>
+<table>
+<thead><tr><th>Module</th><th>Standard report</th><th>Expert / full report</th></tr></thead>
+<tbody>
+<tr><td><strong>Query Log Optimizer (QLA)</strong></td><td>Current tab grid (fingerprints, usage, etc.)</td><td>Summary metrics + recommendation sheets across analyzed queries</td></tr>
+<tr><td><strong>Performance Monitor (PM)</strong></td><td>Active tab snapshot</td><td>Multi-tab workbook (dashboard, profiler, locks, …) where available</td></tr>
+<tr><td><strong>Query Profiler</strong></td><td>Session grid export</td><td>Full profiler workbook with recommendations when Optimize has run</td></tr>
+<tr><td><strong>Query Optimizer (QO)</strong></td><td>Standard report (Excel) — plan, indexes, scores</td><td>Expert report — optional AI suggestions, 3 AI compare groups, rewrite detail, extra sheets</td></tr>
+</tbody>
+</table>
+<p>Export buttons live in each module toolbar (spreadsheet icon). QO Expert opens a sheet picker before export. Expert Index DDL for QLA is separate from Excel — script-oriented output for top-N consolidated indexes.</p>
+
+<h2 id="tech-import-connections">Import connections</h2>
+<p><strong>Command Palette → SQLLens: Import Connections</strong> (or connection tree context) opens a file picker for:</p>
+<ul>
+<li><strong>SQLTools</strong> — VS Code / Cursor <code>settings.json</code> connection entries</li>
+<li><strong>DBeaver</strong> — <code>data-sources.json</code> export</li>
+</ul>
+<p>SQLLens parses MySQL, MariaDB, PostgreSQL, and SQLite entries, shows a multi-select list with host/user/database summary, and saves chosen profiles through the same path as manually added connections. Passwords import when present in the source file; otherwise you complete credentials in the connection dialog.</p>
+
+<h2 id="tech-workspace-credentials">Workspace credential import</h2>
+<p>On extension activation (and via <strong>Scan Workspace for Database Credentials</strong>), SQLLens scans the open workspace for:</p>
+<ul>
+<li><code>.env</code> and <code>.env.*</code> files</li>
+<li><code>docker-compose.yml</code> / <code>docker-compose.yaml</code> service environment blocks</li>
+</ul>
+<p>Recognized patterns include common <code>DATABASE_URL</code>, <code>MYSQL_*</code>, <code>PG*</code>, and SQLite file paths. Example/template env files are skipped. When matches are found, a Skyline modal offers to create connection profiles — deduplicated against profiles you already saved.</p>
+<p>You can snooze or disable future prompts from the modal; scans respect standard ignore folders (<code>node_modules</code>, <code>.git</code>, etc.).</p>
+
+<h2 id="tech-architecture">Architecture notes (high level)</h2>
+<p>SQLLens runs as a VS Code extension with these logical layers — useful when reasoning about MCP, QO, and exports:</p>
+<ul>
+<li><strong>Connection layer</strong> — Saved profiles, per-file Active database resolution, engine-specific drivers (MySQL/MariaDB, PostgreSQL, SQLite).</li>
+<li><strong>Workbench webviews</strong> — QO, QLA, PM, Profiler render in editor panels; export and AI actions post messages to the extension host.</li>
+<li><strong>Optimizer engines</strong> — Plan parsers and index recommenders per engine under shared contracts (e.g. join-degree rules shared across PG/SQLite/MySQL).</li>
+<li><strong>AI gateway</strong> — Integrated routing to sqllens.ai Cloud or BYOK providers; QO AI Advisor and 3 AI compare call the same gateway with optimizer-specific prompts.</li>
+<li><strong>MCP bridge</strong> — In-process MCP server registers tools that delegate to ConnectionManager and SQL guard (read-only enforcement, statement classification).</li>
+<li><strong>Export pipeline</strong> — Grid + recommendation data serialized to multi-sheet Excel via a shared grid report builder.</li>
+</ul>
+<div class="callout note"><div class="label">Settings</div><p>MCP write policy, optimizer defaults, and AI providers are under <a href="../settings.html">Settings</a> (<code>skyline-mysql.*</code> prefix).</p></div>
+
+<h2 id="tech-changelog">Changelog-style summary</h2>
+<table>
+<thead><tr><th>Area</th><th>Highlight</th></tr></thead>
+<tbody>
+<tr><td>MCP Phase 2</td><td>Auto-registration, chat participants, Agent tool picker, optional external HTTP listener for out-of-editor clients.</td></tr>
+<tr><td>QO AI</td><td>Index Strategy Studio, AI Advisor, 3 AI compare consensus on MySQL/MariaDB.</td></tr>
+<tr><td>Exports</td><td>Standard + Expert Excel across QLA, PM, Profiler, QO.</td></tr>
+<tr><td>Connections</td><td>SQLTools + DBeaver import; workspace .env / docker-compose credential scan.</td></tr>
+<tr><td>Engines</td><td>PostgreSQL PM/QO/QLA parity expansion; SQLite QO workbench.</td></tr>
+</tbody>
+</table>
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens Docs</p>
+        <p class="doc-site-footer__muted">Database tools for VS Code and Cursor — doc.sqllens.ai</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="technical-overview.html">Technical overview</a></li>
+          <li><a href="mcp-ai-database.html">MCP &amp; AI database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens · doc.sqllens.ai</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

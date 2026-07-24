@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Performance Monitor (PM) · SQLLens.AI Docs</title>
+<meta name="description" content="SQLLens.AI Performance Monitor: live dashboards, Profiler (Live), running queries, locks, replication, index hygiene, and MySQL config recommendations." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>Performance Monitor</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Pillar</div>
+      <h1>Performance Monitor (PM)</h1>
+      <p class="lede">Live MySQL/MariaDB monitoring in one panel: health dashboards, Profiler (Live) with batch optimize, running queries and locks, replication, index hygiene, config recommendations, and a diagnostic query palette — all tied to a single connection session.</p>
+    </header>
+
+<h2 id="pm-overview">Overview</h2>
+<p><strong>Performance Monitor (PM)</strong> opens as a webview panel scoped to one database connection. After you click <strong>▶ Start</strong>, it polls the server on a schedule you choose and keeps a rolling in-memory history (up to ~2 hours at the current interval).</p>
+<ul>
+<li><strong>Dashboard</strong> — DB health signals, connection pressure, query workload charts, locks/deadlocks, replication, unused indexes, and config audit summary.</li>
+<li><strong>Profiler (Live)</strong> — captures query templates from Performance Schema, ranks them by impact, and supports Optimize All / Create Indexes (same engine as the <a href="slow-query-analyzer.html#qla-overview">Query Log Optimizer</a>).</li>
+<li><strong>Operational tabs</strong> — running queries, long transactions, lock waits, connections breakdown, Com_* workload, replication, slow-query digest, index hygiene, table design insights, and alerts.</li>
+</ul>
+<figure class="doc-media doc-media--gif">
+<img src="../images/performance-monitor-tour-demo.gif" width="720" alt="Animated demo: Performance Monitor — DB health signals, tabs, Profiler (Live), running queries, and dashboards." loading="lazy" decoding="async" />
+<figcaption class="caption">Full tour: Dashboard health signals → tab bar (Profiler, Running Queries, Locks, …) → live grids and action buttons.</figcaption>
+</figure>
+<div class="callout note"><div class="label">MySQL / MariaDB</div><p>PM is built for MySQL and MariaDB. PostgreSQL connections use other tools (Query Log Optimizer, PostgreSQL Query Optimizer) instead of this panel.</p></div>
+
+<h2 id="pm-open">How to open</h2>
+<ul>
+<li><strong>Database tree</strong> — right-click a connection or database → <strong>📊 Performance Monitor</strong>.</li>
+<li><strong>Command Palette</strong> — search for Performance Monitor / debugger commands on your active connection.</li>
+<li><strong>Reopen last</strong> — <code>mysql.performanceMonitor.reopenLast</code> restores the previous PM session when available.</li>
+</ul>
+<figure class="doc-media doc-media--gif">
+<img src="../images/performance-monitor-open-demo.gif" width="720" alt="Animated demo: Opening Performance Monitor from the database tree." loading="lazy" decoding="async" />
+<figcaption class="caption">Opening PM from the connection context menu — Dashboard appears before you Start monitoring.</figcaption>
+</figure>
+<p>Click <strong>▶ Start</strong> to begin polling. The connection badge shows your schema context; after Start, the session database comes from <code>SELECT DATABASE()</code>.</p>
+
+<h2 id="pm-header">Header bar — session controls</h2>
+<table>
+<thead><tr><th>Control</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><strong>Connection badge</strong></td><td>Active schema / database and host. Tooltip explains session vs. tree context.</td></tr>
+<tr><td><strong>Session status</strong></td><td><em>Stopped</em>, <em>Running for …</em>, or paused state with elapsed duration.</td></tr>
+<tr><td><strong>Poll countdown</strong></td><td>Progress bar until the next automatic refresh (hidden when stopped).</td></tr>
+<tr><td><strong>HEALTH score</strong></td><td>Composite grade (A–F) and numeric score updated each poll.</td></tr>
+<tr><td><strong>Alert badge</strong></td><td>Count of unacknowledged alerts (click ⚠️ tab).</td></tr>
+<tr><td><strong>Polling interval</strong></td><td>15s · 30s · 60s · 2m · 5m · 10m — controls profiler + metrics cadence.</td></tr>
+<tr><td><strong>▶ Start</strong></td><td>Begin monitoring (disabled while loading).</td></tr>
+<tr><td><strong>⏸ Pause</strong> / <strong>▶ Resume</strong></td><td>Pause stops automatic polls but keeps data; Resume runs one immediate sample then continues.</td></tr>
+<tr><td><strong>⟳ Refresh</strong></td><td>Manual full refresh (profiler + metrics) while session is running.</td></tr>
+<tr><td><strong>🗑️ Clear Old Data</strong></td><td>Reset rolling history buffers in the panel (does not change server state).</td></tr>
+</tbody>
+</table>
+
+<h2 id="pm-tabs">Tab bar</h2>
+<p>Tabs show badge counts when relevant. Dashboard and Alerts use icon-only tabs (hover for label).</p>
+<table>
+<thead><tr><th>Tab</th><th>Badge</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><strong>📊 Dashboard</strong></td><td>—</td><td>At-a-glance health, workload charts, clickable summary tiles.</td></tr>
+<tr><td><strong>⚡ Profiler (Live)</strong></td><td>Active Query commands</td><td>Latency timeline + query template grid; batch optimize workflow.</td></tr>
+<tr><td><strong>▶ Running Queries</strong></td><td>Filtered active sessions</td><td>Live PROCESSLIST (non-idle); kill / optimize / explain.</td></tr>
+<tr><td><strong>⏱ Long Transactions</strong></td><td>Open InnoDB trx</td><td><code>information_schema.innodb_trx</code> with age tiers.</td></tr>
+<tr><td><strong>🔒 DB Locks</strong></td><td>Active lock waits</td><td>Lock waits + deadlock history sub-tabs.</td></tr>
+<tr><td><strong>🔌 Connections</strong></td><td>—</td><td>Host and user connection breakdown + pie charts.</td></tr>
+<tr><td><strong>⚙️ DB workload</strong></td><td>—</td><td>Questions/Com_* rates and command counter table.</td></tr>
+<tr><td><strong>💡 MySQL config recommendations</strong></td><td>Critical + high findings</td><td>Heuristic audit of global variables + engine signals.</td></tr>
+<tr><td><strong>🔁 Replication</strong></td><td>Channels needing attention</td><td>Replica status, lag, errors, AI assist hooks.</td></tr>
+<tr><td><strong>🐢 Slow Queries</strong></td><td>Slow digest count</td><td>Embedded query digest + link to Query Log Optimizer.</td></tr>
+<tr><td><strong>📇 Unused indexes</strong></td><td>Unused + redundant rows</td><td>Index hygiene grids with copy/run DROP.</td></tr>
+<tr><td><strong>📋 Table insights</strong></td><td>—</td><td>NF/datatype/index heuristics on sampled rows.</td></tr>
+<tr><td><strong>⚠️ Alerts</strong></td><td>Unacknowledged</td><td>Session alerts with acknowledge / kill actions.</td></tr>
+</tbody>
+</table>
+
+<h2 id="pm-dashboard">Dashboard tab</h2>
+<p>The default view when PM opens. Requires <strong>Start</strong> for live numbers; tiles link to detail tabs when clicked.</p>
+
+<h3 id="pm-dashboard-status">Status strip</h3>
+<ul>
+<li><strong>Live / Paused / Stopped</strong> session indicator.</li>
+<li><strong>Health grade</strong> pill (A/B good · C mid · D/F bad).</li>
+<li><strong>Config</strong> pill — OK · Watch · Urgent count · error · pending.</li>
+<li>Legend: red = urgent, orange = watch, 🚩 on tiles.</li>
+</ul>
+
+<h3 id="pm-db-health">DB health signals (18 tiles)</h3>
+<p>Color-coded grid at the top of Dashboard. <strong>Single-click</strong> a tile opens its related tab; <strong>double-click anywhere</strong> on the section opens MySQL config recommendations.</p>
+<table>
+<thead><tr><th>Signal</th><th>Typical green</th><th>Opens tab</th></tr></thead>
+<tbody>
+<tr><td><strong>Buffer Pool Hit Rate</strong></td><td>High hit %</td><td>MySQL config</td></tr>
+<tr><td><strong>Buffer Pool Used</strong></td><td>&lt;95% used</td><td>MySQL config</td></tr>
+<tr><td><strong>Active Transactions</strong></td><td>0–5</td><td>Long Transactions</td></tr>
+<tr><td><strong>History List Length</strong></td><td>&lt;1000</td><td>Long Transactions</td></tr>
+<tr><td><strong>Pending Reads</strong></td><td>0</td><td>MySQL config</td></tr>
+<tr><td><strong>Pending Writes</strong></td><td>0</td><td>MySQL config</td></tr>
+<tr><td><strong>Connections used % (peak)</strong></td><td>&lt;70%</td><td>MySQL config</td></tr>
+<tr><td><strong>Threads Running %</strong></td><td>Low vs connected</td><td>Connections</td></tr>
+<tr><td><strong>Key Buffer Used</strong></td><td>Within range</td><td>MySQL config</td></tr>
+<tr><td><strong>Temp Sort Table %</strong></td><td>Low</td><td>MySQL config</td></tr>
+<tr><td><strong>Joins Without Indexes</strong></td><td>0</td><td>Profiler (Live)</td></tr>
+<tr><td><strong>Avg Row Lock Wait</strong></td><td>Low ms</td><td>DB Locks</td></tr>
+<tr><td><strong>Table Cache Hit Rate</strong></td><td>High</td><td>MySQL config</td></tr>
+<tr><td><strong>Temp Disk %</strong></td><td>Low</td><td>MySQL config</td></tr>
+<tr><td><strong>Redo Log / BP</strong></td><td>Balanced ratio</td><td>MySQL config</td></tr>
+<tr><td><strong>Thread Cache Hit Rate</strong></td><td>High</td><td>Connections</td></tr>
+<tr><td><strong>Immediate Table Locks</strong></td><td>High %</td><td>DB Locks</td></tr>
+<tr><td><strong>Files Open %</strong></td><td>Low</td><td>MySQL config</td></tr>
+</tbody>
+</table>
+<p>Tiles show the internal metric key (e.g. <code>pct_temp_sort_table</code>) in small type. Orange/red borders match severity thresholds documented in each tile tooltip.</p>
+
+<h3 id="pm-dashboard-tiles">Summary tiles (click-through)</h3>
+<table>
+<thead><tr><th>Tile</th><th>Shows</th><th>Click opens</th></tr></thead>
+<tbody>
+<tr><td><strong>Connections</strong></td><td>Open / max, Threads_running, sparklines, % of max</td><td>Connections tab</td></tr>
+<tr><td><strong>Active Alerts</strong></td><td>Unacknowledged alert count</td><td>Alerts tab</td></tr>
+<tr><td><strong>Query execution</strong></td><td>QPS gauge, read/write split, 30-minute line charts (Questions, slow share)</td><td>Running Queries (running count zone)</td></tr>
+<tr><td><strong>Locks / deadlocks</strong></td><td>Wait count, recent deadlock flag</td><td>DB Locks tab</td></tr>
+<tr><td><strong>Long transactions</strong></td><td>UNDO / ACTIVE / Not started counts</td><td>Long Transactions tab</td></tr>
+<tr><td><strong>Unused / redundant index size</strong></td><td>% of total InnoDB index bytes</td><td>Unused indexes tab</td></tr>
+<tr><td><strong>MySQL config</strong></td><td>Audit summary (critical/high/medium)</td><td>MySQL config recommendations tab</td></tr>
+<tr><td><strong>Engine resource signals</strong></td><td>QPS, buffer pool, InnoDB I/O proxies</td><td>MySQL config (engine signals section)</td></tr>
+<tr><td><strong>Replication</strong></td><td>Lag, IO/SQL thread state, error flag</td><td>Replication tab</td></tr>
+</tbody>
+</table>
+
+<h3 id="pm-dashboard-charts">Analytics chart (bottom of Dashboard)</h3>
+<p>Top tables cumulative chart with toggle between views. <strong>Refresh Analytics</strong> recomputes from the server. Requires an active monitoring session with enough samples.</p>
+
+<h2 id="pm-profiler">Profiler (Live) tab</h2>
+<p>Two-panel layout: latency timeline on top, query template grid below. Resizable divider; either panel can collapse.</p>
+
+<h3 id="pm-profiler-chart">Query Latency chart controls</h3>
+<table>
+<thead><tr><th>Control</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td><strong>📈 Metrics overlay</strong></td><td>Toggle QPS / connections lines on the chart.</td></tr>
+<tr><td><strong>🔍+ / 🔍−</strong></td><td>Zoom in / out on time range.</td></tr>
+<tr><td><strong>Zoom %</strong></td><td>200% … 10% preset levels.</td></tr>
+<tr><td><strong>📅 Custom range</strong></td><td>Presets (5m, 15m, 30m, 1h, All) + slider; Apply / Cancel.</td></tr>
+<tr><td><strong>🔄 Reset</strong></td><td>Clear custom zoom (also ESC / double-click chart).</td></tr>
+<tr><td><strong>Display interval</strong></td><td>Auto · 15s · 30s · 1m · 2m · 5m aggregation.</td></tr>
+<tr><td><strong>▲ / ▼</strong></td><td>Collapse / expand chart panel.</td></tr>
+</tbody>
+</table>
+
+<h3 id="pm-profiler-grid">Template grid</h3>
+<p>Sortable columns: rank, impact, rating, fingerprint, response time, usage %, calls, avg time, actions, database, table, query score, rows examined, type, recommended indexes. Filter box searches template / sample SQL / schema.</p>
+<p>Sub-tabs (same as Query Log Optimizer): <strong>Query Fingerprints</strong> · <strong>Table Usage</strong> · <strong>Database Usage</strong> · <strong>User Usage</strong>.</p>
+
+<h3 id="pm-profiler-actions">Profiler action bar</h3>
+<table>
+<thead><tr><th>Button</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td><strong>⚡ Optimize all Queries</strong></td><td>Batch-analyze top templates; fills index recommendations.</td></tr>
+<tr><td><strong>Create Indexes + Validate</strong> ▼</td><td>Validate (before/after EXPLAIN) or create only — opens Create Indexes overlay.</td></tr>
+<tr><td><strong>Export Index DDL</strong> ▼</td><td>Export script file or copy to clipboard.</td></tr>
+<tr><td>Row <strong>📊 EXPLAIN</strong> / <strong>⚡ Optimize</strong> / <strong>📋 Copy</strong></td><td>Single-query workbench or clipboard.</td></tr>
+<tr><td><strong>Refresh Analytics</strong></td><td>Recompute profiler analytics when session has data.</td></tr>
+<tr><td><strong>Start New Session</strong></td><td>Reset profiler capture (when stopped or to clear templates).</td></tr>
+</tbody>
+</table>
+<p>See <a href="slow-query-analyzer.html#qla-create-indexes">Create Indexes overlay</a> for validation charts and drop actions.</p>
+
+<h2 id="pm-running-queries">Running Queries tab</h2>
+<p>Live <code>information_schema.PROCESSLIST</code> — idle Sleep/Daemon hidden by default.</p>
+<table>
+<thead><tr><th>Toolbar control</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><strong>Filter</strong></td><td>All · Time &gt; … (with comparator + seconds) · With SQL only.</td></tr>
+<tr><td><strong>Show replication threads</strong></td><td>Include replica I/O/SQL long-lived threads.</td></tr>
+<tr><td><strong>Filter text</strong></td><td>Search user, host, DB, query text.</td></tr>
+<tr><td><strong>🔄 Refresh</strong></td><td>Immediate processlist snapshot.</td></tr>
+</tbody>
+</table>
+<p>Duration color tiers use configurable thresholds (white → green → amber → red). Columns: #, Time, Query, State, Reason, <strong>Actions</strong>, Id, Database, Command, User, Host — all sortable.</p>
+<p><strong>Row actions:</strong> ⏹ Kill · ⚡ Query Optimizer · 📊 EXPLAIN (when SQL is optimizable).</p>
+
+<h2 id="pm-long-transactions">Long Transactions tab</h2>
+<p>InnoDB transactions from <code>information_schema.innodb_trx</code>. Summary line: UNDO · ACTIVE · Not started counts.</p>
+<p>Columns: #, Status, Time, Undo log, Lock struct, Query, State, Reason, Actions, Thread Id, Database, Table, User, Isolation. Row tint by age band. Actions: Kill · Optimize · EXPLAIN. Double-click a cell to copy.</p>
+
+<h2 id="pm-locks">DB Locks tab</h2>
+<p>Sub-tabs: <strong>Active Lock Waits</strong> (count badge) · <strong>Deadlocks</strong>. <strong>🔄 Refresh</strong> runs lock-wait queries only (not full PM poll).</p>
+<p>Wait severity legend: &lt;5s · 5–14s · 15–59s · 60s+ (row = blocked time).</p>
+<table>
+<thead><tr><th>Column group</th><th>Contents</th></tr></thead>
+<tbody>
+<tr><td>Lock metadata</td><td>Family, Source, Locked object, Lock type, Lock mode, Recommendation</td></tr>
+<tr><td>Waiter</td><td>Waiting PID, Waiting SQL, Blocked time, Waiter actions (⚡ / 📊)</td></tr>
+<tr><td>Blocker</td><td>Blocker PID, Blocking SQL, Blocker actions, <strong>Kill</strong></td></tr>
+</tbody>
+</table>
+
+<h2 id="pm-connections">Connections tab</h2>
+<p>Two side-by-side grids — <strong>By client host</strong> and <strong>By DB user</strong> — plus pie charts when data exists.</p>
+<p>Columns: Name, Conns, ActiveConns, SleepConns, Active(%), Sleep(%), Total(%). Bar colors: red &gt;80%, orange 50–80%. <strong>🔄 Refresh</strong> re-queries PROCESSLIST.</p>
+
+<h2 id="pm-db-workload">DB workload tab</h2>
+<p>Gauge cards (when interval rates available): Total · Write · Read (select) · Insert · Update · Delete · Commits · Start transactions — each shows per sec and per min with relative bar fill.</p>
+<p><strong>Com_* counters table</strong> columns: Variable name, Value, Value %, Last increment, Increment % share.</p>
+
+<h2 id="pm-mysql-config">MySQL config recommendations tab</h2>
+<p>Heuristic audit of <code>SHOW GLOBAL VARIABLES</code> + status-derived calculations (mysqltuner-style rows).</p>
+<table>
+<thead><tr><th>Control / section</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><strong>Search</strong></td><td>Look up a variable in loaded globals.</td></tr>
+<tr><td><strong>Refresh</strong></td><td>Re-fetch global variables and re-run audit.</td></tr>
+<tr><td><strong>Findings table</strong></td><td>Severity, variable, current vs recommended, rationale.</td></tr>
+<tr><td><strong>Engine signals</strong></td><td>QPS, buffer pool hit %, InnoDB page I/O — session proxies (not OS CPU/RAM).</td></tr>
+<tr><td><strong>Variable search panel</strong></td><td>Jump to a specific global variable value.</td></tr>
+</tbody>
+</table>
+
+<h2 id="pm-replication">Replication tab</h2>
+<p>For replicas: channel grid (lag, IO/SQL threads, last error, binlog positions), guidance cards, applier thread SQL, lag history table, raw JSON details.</p>
+<table>
+<thead><tr><th>Button</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td><strong>🔄 Refresh</strong></td><td>Re-query SHOW REPLICA / SLAVE STATUS.</td></tr>
+<tr><td><strong>Copy context for AI</strong></td><td>Copy replica diagnostics text for external review.</td></tr>
+<tr><td><strong>Open AI Assist</strong></td><td>Skyline AI Assist with replication context pre-loaded.</td></tr>
+<tr><td><strong>Fix with AI</strong> (per field)</td><td>AI help for a specific replica status field.</td></tr>
+</tbody>
+</table>
+
+<h2 id="pm-slow-queries">Slow Queries tab</h2>
+<p>Embedded <strong>Query Digest</strong> from Performance Schema (filters: time window, limit, sort). Expand rows for full digest text.</p>
+<p><strong>⚡ Open Query Log Optimizer</strong> — opens the full <a href="slow-query-analyzer.html#qla-overview">Slow Query Log Analyzer</a> panel (slow log file, mysql.slow_log, Optimize All, Create Indexes).</p>
+
+<h2 id="pm-unused-indexes">Unused indexes tab</h2>
+<p>Two grids: <strong>Unused indexes</strong> and <strong>Redundant indexes</strong> (<code>sys.schema_redundant_indexes</code> when available). Summary strip shows total InnoDB index bytes and hygiene percentages.</p>
+<table>
+<thead><tr><th>Unused columns</th><th>Redundant columns</th></tr></thead>
+<tbody>
+<tr><td>Schema, Schema size, Table, Index, Size, DROP SQL, Actions</td><td>Schema, Schema size, Table, Redundant index + cols, Dominant index + cols, Reason, Size, DROP SQL, Actions</td></tr>
+</tbody>
+</table>
+<p><strong>Actions:</strong> copy DROP statement · run DROP (with confirmation). <strong>🔄 Refresh</strong> reloads from sys / Performance Schema. Expandable details explain computation and full report SQL.</p>
+
+<h2 id="pm-table-insights">Table insights tab</h2>
+<p>Sub-tabs: <strong>Top used tables</strong> (cached per connection) · <strong>All tables</strong> (on-demand, up to 24 non-empty tables).</p>
+<p>All tables mode: Schema filter, table name contains, <strong>Run analysis</strong>. Grid columns include Rating, Table, DB design score, 1NF/2NF/3NF signals, datatype score, index score, index list, unused/redundant counts — sortable headers.</p>
+
+<h2 id="pm-alerts">Alerts tab</h2>
+<p>Summary counts: Critical · Warning · Info (unacknowledged). Each alert card shows title, message, time.</p>
+<table>
+<thead><tr><th>Button</th><th>When</th></tr></thead>
+<tbody>
+<tr><td><strong>Acknowledge</strong></td><td>Dismiss active alert (moves to acknowledged list).</td></tr>
+<tr><td><strong>Kill</strong></td><td>When alert includes a process id — sends KILL to server (privilege required).</td></tr>
+</tbody>
+</table>
+
+<h2 id="pm-diagnostics">Diagnostic query palette</h2>
+<p>From PM or Command Palette (<code>mysql.diagnostics.show</code>): pick curated diagnostic SQL — wait events, bloat, missing indexes, etc. Results open in the normal SQL Results panel. See <a href="advanced-testing.html#adv-diagnostics">advanced diagnostics</a>.</p>
+
+<h2 id="pm-storage">Data retention &amp; maintenance</h2>
+<ul>
+<li>PM stores rolling history in the webview session (metrics, profiler templates, charts) — not persisted across VS Code restarts.</li>
+<li><strong>Clear Old Data</strong> (🗑️) wipes buffered history while keeping the session running.</li>
+<li>Long sessions: PM may show memory warnings and offers auto-pause after extended runtime.</li>
+<li>Lower polling interval temporarily when investigating spikes; restore 30s–60s for steady monitoring.</li>
+</ul>
+
+<h2 id="pm-tips">Tips</h2>
+<ul>
+<li>Start on <strong>Dashboard</strong> for health signals, then drill into red/orange tiles.</li>
+<li>Use <strong>Profiler (Live)</strong> during load tests; pair <strong>Optimize All</strong> with the <a href="query-optimizer.html#qo-overview">Query Optimizer</a> for hard statements.</li>
+<li><strong>Running Queries</strong> + <strong>DB Locks</strong> together diagnose blocking — kill blocker only when you understand impact.</li>
+<li>Refresh <strong>Unused indexes</strong> before large DROP campaigns; review redundant vs unused separately.</li>
+<li>Replication tab <strong>Copy context for AI</strong> speeds up lag/error triage without exposing credentials in chat.</li>
+<li>Related: <a href="slow-query-analyzer.html#qla-workflow">Query Log Optimizer workflow</a> · <a href="query-profiler.html">Query Profiler</a> (statement-level tracing).</li>
+</ul>
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

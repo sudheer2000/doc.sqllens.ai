@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SQLLens Docs · doc.sqllens.ai</title>
+<meta name="description" content="SQLLens documentation — MySQL, MariaDB, PostgreSQL, and SQLite tools for VS Code and Cursor. MCP agents, Query Optimizer AI, performance modules, and connection import." />
+<script src="js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="index.html"><span class="dot"></span>SQLLens Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><span>Docs</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Documentation</div>
+      <h1>SQLLens Docs</h1>
+      <p class="lede">Everything you need to use SQLLens in VS Code or Cursor — MySQL, MariaDB, PostgreSQL, and SQLite — from your first connection to MCP agents, AI index advisory, and performance tuning.</p>
+    </header>
+
+<figure class="doc-media doc-media--gif doc-hero-media" id="hub-demo">
+<img src="images/query-builder-landing-demo.gif" width="720" alt="Animated demo: SQLLens.AI in VS Code — connection tree, SQL editor, Query Results, and drag-and-drop Query Builder." loading="eager" decoding="async" />
+<figcaption class="caption">SQLLens.AI in VS Code — explorer, editor, Query Results, and drag-and-drop Query Builder.</figcaption>
+</figure>
+    
+<h2 id="hub-overview">What SQLLens is</h2>
+<p>SQLLens is a database workspace that lives in your editor. It connects to <strong>MySQL</strong>, <strong>MariaDB</strong>, <strong>PostgreSQL</strong>, and <strong>SQLite</strong>, gives you a fast SQL editor with autocomplete and CodeLens, a drag‑and‑drop query builder, a schema designer, and performance tools — Query Optimizer (QO), Slow Query Log Analyzer (QLA), Performance Monitor (PM), and Query Profiler. AI features can generate, fix, and explain SQL; MCP lets agents query through your saved profiles.</p>
+<p>Use the <strong>engine bar</strong> in the header to filter docs for your database.</p>
+
+<h2 id="hub-technical">Technical documentation</h2>
+<p>Architecture notes, engine matrix, and changelog-style summary of the latest features.</p>
+<div class="cards">
+  <a class="card" href="modules/technical-overview.html"><div class="eyebrow">Technical</div><h3>Technical overview</h3><p>Latest features, engine matrix, MCP, QO AI, exports, imports.</p></a>
+  <a class="card" href="modules/mcp-ai-database.html"><div class="eyebrow">MCP</div><h3>MCP &amp; AI database</h3><p>@sql, @sqllens, Agent tools, connection scope, safety.</p></a>
+  <a class="card" href="modules/technical-overview.html#tech-engine-matrix"><div class="eyebrow">Reference</div><h3>Engine support matrix</h3><p>Which features apply to MySQL, MariaDB, PostgreSQL, SQLite.</p></a>
+</div>
+
+
+<h2 id="hub-start">Get started</h2>
+<div class="cards">
+  <a class="card" href="get-started.html"><div class="eyebrow">Start here</div><h3>Install &amp; first run</h3><p>Install the extension and open the SQLLens.AI sidebar.</p></a>
+  <a class="card" href="connect-db.html"><div class="eyebrow">Connect</div><h3>Connect a database</h3><p>Host, port, credentials, SSL and SSH tunnels.</p></a>
+</div>
+
+<h2 id="hub-account">Cloud &amp; sqllens.ai account</h2>
+<p>Optional sign-in powers cloud-backed AI routing and (if enabled in your organization) usage metering. You can run SQL, connections, and local LLMs entirely without an account—see <a href="modules/cloud-account.html#cca-offline">offline / local-only</a> mode.</p>
+<div class="cards">
+  <a class="card" href="modules/cloud-account.html"><div class="eyebrow">Account</div><h3>Cloud &amp; sqllens.ai</h3><p>Sign in, usage, tree gate diagnosis, and disabling cloud API.</p></a>
+</div>
+
+
+<h2 id="hub-qo-ai">Query Optimizer — AI index advisory</h2>
+<p>The <a href="modules/query-optimizer.html">Query Optimizer workbench</a> includes <strong>Index Strategy Studio</strong> on the Analyze panel: rule-based <strong>Index Engine</strong> suggestions, one-click <strong>AI Advisor</strong> (Auto), and on MySQL/MariaDB <strong>3 AI compare (LLMs)</strong> — run up to three models in parallel, rank by consensus, and create the winning index DDL.</p>
+<div class="cards">
+  <a class="card" href="modules/query-optimizer.html#qo-index-strategy-studio" data-engines="mysql mariadb postgres sqlite"><div class="eyebrow">QO</div><h3>Index Strategy Studio</h3><p>Three source tabs: Index Engine, AI Advisor, and multi-model compare.</p></a>
+  <a class="card" href="modules/query-optimizer.html#qo-ai-advisor" data-engines="mysql mariadb postgres sqlite"><div class="eyebrow">QO · AI</div><h3>AI Advisor</h3><p>▶ Run Auto for a single LLM index recommendation with match vs engine.</p></a>
+  <a class="card" href="modules/query-optimizer.html#qo-ai-compare" data-engines="mysql mariadb"><div class="eyebrow">QO · Pro Plus</div><h3>3 AI compare (LLMs)</h3><p>Pick three slots, Run consensus, ranked cards, Create Index on top picks.</p></a>
+</div>
+<figure class="doc-media doc-media--diagram">
+<img src="images/qo-index-strategy-studio.svg" width="720" height="420" alt="Index Strategy Studio tabs: Index Engine, AI Advisor, and 3 AI compare with ranked index recommendation cards." loading="lazy" decoding="async" />
+<figcaption class="caption">Index Strategy Studio inside Query Optimizer — internal algorithm plus optional AI advisory and multi-model consensus (MySQL/MariaDB).</figcaption>
+</figure>
+<figure class="doc-media doc-media--diagram">
+<img src="images/qo-ai-compare-llms.svg" width="720" height="440" alt="3 AI compare panel with three model slots, Run consensus, status bar, and unanimous recommendation." loading="lazy" decoding="async" />
+<figcaption class="caption"><strong>3 AI compare (LLMs)</strong> — parallel model runs, status bar, and agreement-ranked recommendations.</figcaption>
+</figure>
+
+<h2 id="hub-mcp-ai">MCP &amp; AI database access</h2>
+<p>Let Copilot Agent, Cursor, and chat query your <strong>saved SQLLens connections</strong> — schema discovery, read-only SELECT, optional writes, and <code>@sql</code> / <code>@sqllens</code> participants. No manual MCP config inside the editor.</p>
+<div class="cards">
+  <a class="card" href="modules/mcp-ai-database.html#mcp-overview"><div class="eyebrow">MCP</div><h3>What it is</h3><p>SQLLens registers as an MCP server; agents use your profiles safely.</p></a>
+  <a class="card" href="modules/mcp-ai-database.html#mcp-chat-participants"><div class="eyebrow">Chat</div><h3>@sql &amp; @sqllens</h3><p>Slash commands, schema, and SQL in fenced blocks.</p></a>
+  <a class="card" href="modules/mcp-ai-database.html#mcp-agent-mode"><div class="eyebrow">Agent</div><h3>Natural-language mode</h3><p>Enable SQLLens in the tools picker; chain discovery and queries.</p></a>
+</div>
+<figure class="doc-media doc-media--diagram">
+<img src="images/mcp-sqllens-agent-flow.svg" width="720" height="400" alt="Diagram: Agent or chat connects through SQLLens MCP to saved profiles and a database." loading="lazy" decoding="async" />
+<figcaption class="caption">MCP and chat route through SQLLens to saved connection profiles — Active SQL tab by default, any profile when specified.</figcaption>
+</figure>
+
+<h2 id="hub-features">Explore the product</h2>
+<p class="lede" style="margin-top:0;font-size:15px">Roughly follow: workspace → query builder → schema &amp; data tools → performance pillars (QO, QLA, PM, Profiler) → AI → settings &amp; shortcuts → advanced diagnostics.</p>
+<div class="cards">
+  <a class="card" href="modules/sql-workspace.html"><div class="eyebrow">Editor</div><h3>SQL editor &amp; workspace</h3><p>Explorer, per‑file DB context, CodeLens, favorites.</p></a>
+  <a class="card" href="modules/query-builder.html"><div class="eyebrow">Build</div><h3>Query builder</h3><p>Drag tables, smart JOINs, multi‑statement drops.</p></a>
+  <a class="card" href="modules/sql-autocomplete.html"><div class="eyebrow">Type</div><h3>SQL autocomplete</h3><p><code>@com</code> / <code>@dba</code>, schema IntelliSense, JOIN ON, favorites.</p></a>
+  <a class="card" href="modules/schema-and-objects.html"><div class="eyebrow">Design</div><h3>Schema &amp; database objects</h3><p>DDL from the tree, table designer, users and privileges.</p></a>
+  <a class="card" href="modules/data-and-schema-tools.html"><div class="eyebrow">Move data</div><h3>Data import, export &amp; schema tools</h3><p>Import, export, sync, documentation, copy structure, scripts.</p></a>
+  <a class="card" href="modules/query-optimizer.html" data-engines="mysql mariadb postgres sqlite"><div class="eyebrow">Tune</div><h3>Query Optimizer (QO)</h3><p>Visual Explain, Index Strategy Studio, AI Advisor, 3 AI compare.</p></a>
+  <a class="card" href="modules/slow-query-analyzer.html" data-engines="mysql mariadb postgres"><div class="eyebrow">Diagnose</div><h3>Slow Query Log Analyzer (QLA)</h3><p>Load digest or slow logs, Optimize All, Create Indexes + Validate.</p></a>
+  <a class="card" href="modules/performance-monitor.html" data-engines="mysql mariadb postgres"><div class="eyebrow">Watch</div><h3>Performance Monitor (PM)</h3><p>Live dashboards, Profiler, locks, replication, index hygiene.</p></a>
+  <a class="card" href="modules/query-profiler.html" data-engines="mysql mariadb"><div class="eyebrow">Inspect</div><h3>Query Profiler</h3><p>Profile a session, read stage timings.</p></a>
+  <a class="card" href="modules/ai-llm-integration.html"><div class="eyebrow">AI</div><h3>LLMs &amp; AI</h3><p>Generate, fix and explain SQL with your provider.</p></a>
+  <a class="card" href="modules/mcp-ai-database.html"><div class="eyebrow">AI · Agents</div><h3>MCP &amp; AI database</h3><p>@sql, @sqllens, Agent tools, saved connections, read-only default.</p></a>
+  <a class="card" href="settings.html"><div class="eyebrow">Configure</div><h3>Settings reference</h3><p>Every <code>skyline-mysql.*</code> key, indexed.</p></a>
+  <a class="card" href="modules/keyboard-shortcuts.html"><div class="eyebrow">Reference</div><h3>Keyboard shortcuts</h3><p>Defaults and how to override.</p></a>
+  <a class="card" href="modules/advanced-testing.html"><div class="eyebrow">Advanced</div><h3>Mock &amp; diagnostics</h3><p>Mock JSON runner, mock tables, diagnostic palette.</p></a>
+</div>
+
+
+<h2 id="hub-next">Next steps &amp; links</h2>
+<p>New to SQLLens.AI? Go to <a href="get-started.html">Get started</a>, then <a href="connect-db.html">Connect a database</a>. With a live connection, read <a href="modules/sql-workspace.html#ws-overview">SQL editor &amp; workspace</a> for day-to-day editing, run, and favorites.</p>
+<p class="support-links"><strong>Outside these docs:</strong> <a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a> · <a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub</a> · <a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Issues</a> · <a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">skylineai.app</a> · <a href="mailto:hello@skylineai.app">hello@skylineai.app</a></p>
+
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens Docs</p>
+        <p class="doc-site-footer__muted">MySQL, MariaDB, PostgreSQL, and SQLite tools for VS Code — doc.sqllens.ai</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="get-started.html">Get started</a></li>
+          <li><a href="connect-db.html">Connect database</a></li>
+          <li><a href="modules/technical-overview.html">Technical overview</a></li>
+          <li><a href="modules/mcp-ai-database.html">MCP &amp; AI database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens · doc.sqllens.ai</p>
+  </div>
+</footer>
+
+<script src="js/docs.js"></script>
+</body>
+</html>

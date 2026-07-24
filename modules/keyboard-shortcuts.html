@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Keyboard shortcuts · SQLLens.AI Docs</title>
+<meta name="description" content="SQLLens.AI keyboard shortcuts: run SQL, optimize, favorites — plus @com, @dba, @fav, @fre editor mention shortcuts." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>Keyboard shortcuts</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Reference</div>
+      <h1>Keyboard shortcuts</h1>
+      <p class="lede">VS Code keybindings for run, optimize, and favorites — plus <code>@</code> mention shortcuts you type in the SQL editor to open command libraries, starred SQL, and query history.</p>
+    </header>
+
+<h2 id="kbd-overview">Overview</h2>
+<p>SQLLens.AI shortcuts fall into two groups:</p>
+<ol>
+<li><strong>Keybindings</strong> — <kbd>Ctrl</kbd>/<kbd>⌘</kbd> chords bound to extension commands (run query, optimize, new file, …).</li>
+<li><strong><code>@</code> mention shortcuts</strong> — type in the SQL editor (no chord); autocomplete opens a filtered list. Accept with <kbd>Enter</kbd> or <kbd>Tab</kbd>, dismiss with <kbd>Esc</kbd>.</li>
+</ol>
+<p>Run <strong>Show MySQL Shortcuts</strong> (<code>mysql.shortcuts.show</code>) from the Command Palette to open the live list of keybindings. That list reflects your OS and any overrides in VS Code.</p>
+<p>For the full autocomplete guide (all <code>@</code> channels, JOIN <code>ON</code>, Query Builder tokens), see <a href="sql-autocomplete.html#ac-at-mentions">SQL autocomplete — @ mention channels</a>.</p>
+
+<h2 id="kbd-at-mentions">@ mention shortcuts (SQL editor)</h2>
+<p>Type <code>@</code> at the start of a line or after <code>;</code>, then a channel keyword. Add words after the keyword to filter (for example <code>@dba long</code>). Channels are <strong>progressive</strong>: <code>@f</code> → <code>@fa</code> → <code>@fav</code> narrows as you type each letter.</p>
+<table>
+<thead><tr><th>Shortcut</th><th>Aliases</th><th>What you get</th><th>Example filter</th></tr></thead>
+<tbody>
+<tr><td><code>@com</code></td><td><code>@command</code>, <code>@cmd</code>, <code>@sql</code>, <code>@c</code> (MySQL/MariaDB; on PostgreSQL <code>@c</code> is psql <code>\c</code>, not commands)</td><td>Engine command library — session settings, metadata, maintenance templates</td><td><code>@com process</code> → processlist-related commands</td></tr>
+<tr><td><code>@dba</code></td><td>(same catalog as <code>@com</code>)</td><td>DBA runbook commands — long queries, locks, processlist, diagnostics</td><td><code>@dba long</code> → long-running query templates</td></tr>
+<tr><td><code>@fav</code></td><td><code>@favorite</code>, <code>@favorites</code>, <code>@f</code></td><td>Starred SQL from the Favorites panel (names and shortcut keys match)</td><td><code>@fav payroll</code> → favorites matching “payroll”</td></tr>
+<tr><td><code>@fre</code></td><td><code>@frequent</code>, <code>@frequently</code></td><td>Most-run queries on this connection (by execution count)</td><td><code>@fre select</code> → frequent SELECT templates</td></tr>
+</tbody>
+</table>
+<div class="callout tip"><div class="label">Accept &amp; navigate</div>
+<ul style="margin:.35rem 0 0 1rem">
+<li><kbd>↑</kbd> <kbd>↓</kbd> — move highlight in the list</li>
+<li><kbd>Enter</kbd> or <kbd>Tab</kbd> — insert the selected row (replaces the whole <code>@…</code> span)</li>
+<li><kbd>Esc</kbd> — close the list without inserting</li>
+<li>Keep typing after the channel word to fuzzy-filter labels</li>
+</ul>
+</div>
+<p>Slash variants at line start work the same way for favorites and history: <code>/fav</code>, <code>/history</code> (see <a href="sql-autocomplete.html#ac-slash-mentions">slash shortcuts</a>). <code>/fre</code> is <strong>not</strong> favorites — it maps to frequent queries.</p>
+
+<h2 id="kbd-defaults">Default keybindings</h2>
+<p>Below, <kbd>⌘</kbd> is macOS; on Windows and Linux use <kbd>Ctrl</kbd> instead (where the command names match).</p><table><thead><tr><th>Action</th><th>Default</th><th>Command</th></tr></thead><tbody><tr><td>Run statement under cursor</td><td><kbd>⌘</kbd>+<kbd>↵</kbd></td><td><code>mysql.runQuery</code></td></tr><tr><td>Run all in file</td><td><kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>↵</kbd></td><td><code>mysql.runAll</code></td></tr><tr><td>Open Visual Explain</td><td><kbd>⌘</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd></td><td><code>mysql.optimize</code></td></tr><tr><td>New SQL file</td><td><kbd>⌘</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd></td><td><code>mysql.newSqlFile</code></td></tr><tr><td>Tree search</td><td><kbd>⌘</kbd>+<kbd>P</kbd> then <code>db</code></td><td><code>mysql.treeSearch</code></td></tr><tr><td>Insert favorite</td><td><kbd>⌘</kbd>+<kbd>K</kbd>, <kbd>F</kbd></td><td><code>mysql.favorite.insert</code></td></tr></tbody></table>
+<h2 id="kbd-customize">Customizing</h2><p>Open <em>Preferences → Keyboard Shortcuts</em> (<kbd>⌘</kbd>+<kbd>K</kbd> <kbd>⌘</kbd>+<kbd>S</kbd>), search for the command id, and rebind. VS Code overrides take precedence over the defaults shipped with SQLLens.AI.</p>
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

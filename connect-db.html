@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Connect a database · SQLLens.AI Docs</title>
+<meta name="description" content="Connect to MySQL or MariaDB in SQLLens.AI — saved profiles, MySQL/SSH/SSL/Advanced tabs, every field, and Connect or Test." />
+<script src="js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="index.html">Docs</a><span>›</span><span>Connect database</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Guides</div>
+      <h1>Connect a database</h1>
+      <p class="lede">Add a MySQL or MariaDB connection when you’re ready to run SQL from the editor—basics, advanced options, SSL, and SSH tunnels.</p>
+    </header>
+    
+
+<h2 id="connect-open">Open the connection dialog</h2>
+<p>Open the SQLLens.AI sidebar and choose <strong>+ Add connection</strong> (or edit an existing entry). The <strong>Connect to MySQL Host</strong> window opens with four tabs: <strong>MySQL</strong>, <strong>SSH</strong>, <strong>SSL</strong>, and <strong>Advanced</strong>.</p>
+
+<h2 id="connect-saved">Saved connections &amp; toolbar</h2>
+<p>Use the top of the dialog to pick or manage profiles before you connect.</p>
+<table>
+<thead><tr><th>Control</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><strong>Saved Connections</strong></td><td>Dropdown of saved profiles (for example <code>127.0.0.1:3306</code>). Select one to load its settings. Unsaved work may appear as an italic entry until you save.</td></tr>
+<tr><td><strong>New</strong></td><td>Start a blank profile; you are prompted for a connection name.</td></tr>
+<tr><td><strong>Clone</strong></td><td>Copy the current saved profile under a new name (available when editing a saved connection).</td></tr>
+<tr><td><strong>Save</strong></td><td>Write changes to the profile (enabled when the form has unsaved edits and a name is set).</td></tr>
+<tr><td><strong>Rename</strong></td><td>Change the display name of the saved profile.</td></tr>
+<tr><td><strong>Delete</strong></td><td>Remove the saved profile after confirmation.</td></tr>
+</tbody>
+</table>
+<p>After a successful save you may see <strong>Connection Auto saved</strong>. Status banners above the tabs report test or connect failures and successes.</p>
+
+<h2 id="connect-mysql">MySQL tab</h2>
+<p>Core server login and optional URL helpers. Required fields are marked in the UI.</p>
+<table>
+<thead><tr><th>Field</th><th>What it is</th><th>Typical value</th></tr></thead>
+<tbody>
+<tr><td><strong>MySQL Host Address</strong></td><td>Hostname or IP of the MySQL/MariaDB server</td><td><code>127.0.0.1</code></td></tr>
+<tr><td><strong>Username</strong></td><td>Database user</td><td><code>root</code></td></tr>
+<tr><td><strong>Password</strong></td><td>Account password</td><td>—</td></tr>
+<tr><td><strong>Save Password</strong></td><td>When checked, stores the password in VS Code Secret Storage (not in <code>settings.json</code>)</td><td>On</td></tr>
+<tr><td><strong>Port</strong></td><td>TCP port</td><td><code>3306</code></td></tr>
+<tr><td><strong>Database(s)</strong></td><td>Optional default schema(s). Use <code>;</code> to list several; leave blank to show all databases you can access</td><td><code>app</code> or empty</td></tr>
+<tr><td><strong>Connection URL</strong></td><td>Optional <code>mysql://</code> URL; can be parsed into the fields above</td><td><code>mysql://user@host:3306/db</code></td></tr>
+<tr><td><strong>Paste URL</strong> / <strong>Build URL</strong></td><td>Paste a URL from the clipboard into the form, or build a URL from the current host, port, user, password, and database fields</td><td>—</td></tr>
+<tr><td><strong>Use Compressed Protocol</strong></td><td>Enables compressed client protocol when the server supports it</td><td>Off unless needed</td></tr>
+<tr><td><strong>Session Idle Timeout</strong></td><td><strong>Default</strong> uses server settings, or <strong>Custom</strong> with a value in seconds</td><td>Default</td></tr>
+<tr><td><strong>Keep-Alive Interval</strong></td><td>How often (seconds) the client sends keep-alive traffic on idle connections</td><td><code>28800</code></td></tr>
+</tbody>
+</table>
+<figure class="doc-media doc-media--diagram">
+<img src="images/connect-db-dialog.jpg" width="720" height="494" alt="Connect to MySQL Host dialog showing saved connection, host, username, password, port, and database fields." loading="lazy" decoding="async" />
+<figcaption class="caption">MySQL tab — host, user, password (with Save Password), port, database(s), and Connection URL with Paste URL / Build URL.</figcaption>
+</figure>
+
+<h2 id="connect-ssh">SSH tab</h2>
+<p>Use this when MySQL is only reachable through a bastion or jump host. Enable <strong>Use SSH Tunnel</strong>, then complete the SSH fields below.</p>
+<table>
+<thead><tr><th>Field</th><th>What it is</th><th>Typical value</th></tr></thead>
+<tbody>
+<tr><td><strong>Use SSH Tunnel</strong></td><td>Turns SSH port forwarding on for this profile</td><td>Off unless required</td></tr>
+<tr><td><strong>SSH Host</strong></td><td>Bastion hostname or IP (required when tunnel is on)</td><td><code>bastion.example.com</code></td></tr>
+<tr><td><strong>SSH Port</strong></td><td>SSH daemon port</td><td><code>22</code></td></tr>
+<tr><td><strong>SSH Username</strong></td><td>SSH login user</td><td><code>root</code></td></tr>
+<tr><td><strong>Authentication Method</strong></td><td><strong>Password</strong> or <strong>Private Key</strong></td><td>Password</td></tr>
+<tr><td><strong>SSH Password</strong></td><td>Shown when method is Password (required)</td><td>—</td></tr>
+<tr><td><strong>Private Key Path</strong></td><td>Path to key file when method is Private Key; use <strong>Browse…</strong> to pick a file</td><td><code>~/.ssh/id_rsa</code></td></tr>
+<tr><td><strong>Passphrase</strong></td><td>Optional unlock phrase for an encrypted private key</td><td>—</td></tr>
+</tbody>
+</table>
+<p>SQLLens.AI opens a local forward through SSH, then connects the MySQL client to the database host and port from the <strong>MySQL</strong> tab.</p>
+<figure class="doc-media doc-media--diagram">
+<img src="images/connect-db-ssh-dialog.jpg" width="720" height="603" alt="Connect to MySQL Host dialog on the SSH tab with Use SSH Tunnel enabled, host, port, username, and authentication method fields." loading="lazy" decoding="async" />
+<figcaption class="caption">SSH tab — Use SSH Tunnel, host, port, username, and authentication method (password or private key).</figcaption>
+</figure>
+
+<h2 id="connect-ssl">SSL tab</h2>
+<p>Enable <strong>Use SSL/TLS</strong> when the server requires encrypted connections. Optional certificate paths map to standard MySQL SSL file options.</p>
+<table>
+<thead><tr><th>Field</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><strong>Use SSL/TLS</strong></td><td>Turns TLS on for this profile</td></tr>
+<tr><td><strong>CA Certificate</strong></td><td>Path to the certificate authority file (<code>.pem</code>)</td></tr>
+<tr><td><strong>Client Certificate</strong></td><td>Path to the client certificate file</td></tr>
+<tr><td><strong>Client Key</strong></td><td>Path to the client private key file</td></tr>
+</tbody>
+</table>
+<div class="callout warn"><div class="label">Heads up</div><p>Use CA and client cert/key paths that match your server’s TLS policy. For internal labs only, your administrator may allow simpler trust settings on the server side—do not relax TLS requirements on production systems without approval.</p></div>
+
+<h2 id="connect-advanced">Advanced tab</h2>
+<p>Fine-tune timeouts, locale, and which databases appear in the explorer tree.</p>
+<table>
+<thead><tr><th>Field</th><th>What it is</th><th>Typical value</th></tr></thead>
+<tbody>
+<tr><td><strong>Connection Timeout</strong></td><td>Seconds to wait while opening the TCP/MySQL session</td><td><code>30</code></td></tr>
+<tr><td><strong>Request Timeout</strong></td><td>Seconds to wait for an individual request to finish</td><td><code>30</code></td></tr>
+<tr><td><strong>Timezone</strong></td><td>Session timezone offset sent to the server</td><td><code>+00:00</code></td></tr>
+<tr><td><strong>Character Encoding</strong></td><td>Client character set (<code>UTF-8</code>, <code>UTF-8 MB4</code>, <code>Latin1</code>, <code>ASCII</code>)</td><td><code>UTF-8</code></td></tr>
+<tr><td><strong>Show Hidden Databases</strong></td><td>When checked, includes system/hidden schemas in the tree if the server exposes them</td><td>Off</td></tr>
+<tr><td><strong>Include Databases</strong></td><td>Comma-separated allow list; only these databases appear in the explorer (empty = no filter)</td><td>empty</td></tr>
+</tbody>
+</table>
+
+<h2 id="connect-actions">Connect, test, or cancel</h2>
+<p>At the bottom of the dialog:</p>
+<ul>
+<li><strong>Connect</strong> — saves (when needed) and opens the connection in the explorer.</li>
+<li><strong>Test Connection</strong> — validates settings without leaving the dialog.</li>
+<li><strong>Cancel</strong> — closes the form without connecting.</li>
+<li><strong>Need Help?</strong> — opens in-product help for connection troubleshooting.</li>
+</ul>
+
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="get-started.html">Get started</a></li>
+          <li><a href="connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="js/docs.js"></script>
+</body>
+</html>

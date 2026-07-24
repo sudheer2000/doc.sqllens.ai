@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="sqllens.ai / SkyLineMySQL Query Optimizer Workbench: EXPLAIN (table, visual, tree, JSON), index recommendations, TT selection, algorithm trace, DDL create + validation, batch optimize, settings." />
+  <title>SkyLineMySQL — Query Optimizer (product guide)</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --border: #30363d;
+      --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+    .wrap {
+      max-width: 46rem;
+      margin: 0 auto;
+      padding: 1.75rem 1.25rem 3rem;
+    }
+    h1 { font-size: 1.65rem; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+    .subtitle { color: var(--muted); margin: 0 0 1.25rem; font-size: 0.95rem; max-width: 60ch; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .banner {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.92rem;
+    }
+    .toc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.15rem;
+      margin: 1.25rem 0 2rem;
+      font-size: 0.92rem;
+    }
+    .toc strong { display: block; margin-bottom: 0.5rem; }
+    .toc ul { margin: 0; padding-left: 1.1rem; }
+    .toc li { margin: 0.3rem 0; }
+    .callout {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      margin: 1.25rem 0;
+    }
+    .callout strong { color: #fff; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 2rem 0 0.65rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.35rem;
+      scroll-margin-top: 1rem;
+    }
+    h3 { font-size: 1rem; margin: 1.35rem 0 0.45rem; }
+    ul, ol { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    code, .kbd {
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      background: #21262d;
+      padding: 0.12em 0.4em;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .kbd { font-size: 0.85em; }
+    pre {
+      margin: 0.75rem 0;
+      padding: 1rem 1.1rem;
+      background: #0a0d12;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: #c9d1d9; }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    footer {
+      margin-top: 2.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Query Optimizer</h1>
+    <p class="subtitle">
+      The <strong>Query Optimizer Workbench</strong> is a VS Code webview for MySQL: live <code>EXPLAIN</code> in several formats, structured <strong>index recommendations</strong> (with optional <code>CREATE INDEX</code> / <code>ALTER TABLE … ADD INDEX</code>),
+      <strong>algorithm trace</strong> for debugging TT and index decisions, and optional <strong>before/after validation</strong> after you apply an index.
+      This page is the product-facing feature map; the unified guide also links here from
+      <a href="skyline-product-guide.html#qo-overview">skyline-product-guide.html#qo-overview</a>.
+    </p>
+
+    <div class="banner">
+      <strong>Premium.</strong> Opening the optimizer workbench is gated behind the Skyline premium feature code <code>qo</code> (see <code>assertPremiumFeatureAllowed</code> in the extension). Exact entitlements depend on your org and product flags.
+    </div>
+
+    <nav class="toc" aria-label="On this page">
+      <strong>On this page</strong>
+      <ul>
+        <li><a href="#open">How to open</a></li>
+        <li><a href="#layout">Workbench layout</a></li>
+        <li><a href="#analyze">Analyze, recommendations &amp; TT</a></li>
+        <li><a href="#explain">EXPLAIN views</a></li>
+        <li><a href="#trace">Algorithm trace</a></li>
+        <li><a href="#rewrites">Rewrites / tips</a></li>
+        <li><a href="#indexes-ai">Index suggestions &amp; AI toggle</a></li>
+        <li><a href="#create-index">Create index, bulk create &amp; validation</a></li>
+        <li><a href="#batch">Optimize all queries</a></li>
+        <li><a href="#settings">Settings &amp; diagnostics</a></li>
+        <li><a href="#related">Related repository docs</a></li>
+      </ul>
+    </nav>
+
+    <section id="what">
+      <h2>What it does</h2>
+      <p>
+        For a SQL statement against your <strong>connected MySQL</strong> schema, the workbench runs optimizer analysis: normalized query text (from the server when JSON <code>EXPLAIN</code> is available), traditional and extended <code>EXPLAIN</code> output,
+        heuristic <strong>rewrite</strong> hints, and an <strong>index recommender</strong> that considers join graph, <code>WHERE</code> shape (including OR policy), <code>GROUP BY</code> / <code>ORDER BY</code>, and live <code>information_schema</code> where needed.
+      </p>
+      <ul>
+        <li><strong>Non-destructive by default</strong> — analysis and <code>EXPLAIN</code> do not change data; index creation is explicit.</li>
+        <li><strong>Schema-coupled</strong> — recommendations are tied to the active connection and database context (the workbench resolves schema nodes when opened from a connection without a selected database).</li>
+        <li><strong>Operational guardrails</strong> — suggested <code>ALTER TABLE</code> statements are executed in isolation and normalized to reduce syntax issues; the editor path can strip optimizer comment artifacts before running SQL elsewhere in the product.</li>
+      </ul>
+    </section>
+
+    <section id="open">
+      <h2>How to open</h2>
+      <table>
+        <thead>
+          <tr><th>Entry point</th><th>What happens</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Command Palette → <strong>Optimize Query (Visual Explain)</strong></td>
+            <td>Opens the workbench for SQL from the active SQL editor selection or document.</td>
+          </tr>
+          <tr>
+            <td>Command Palette → <strong>Open Query Optimizer (from live EXPLAIN hint)</strong></td>
+            <td>Opens from inline diagnostics / hint flow when available.</td>
+          </tr>
+          <tr>
+            <td>Result / query panel → open optimizer</td>
+            <td>Passes the current SQL into the workbench (MySQL connections).</td>
+          </tr>
+          <tr>
+            <td><strong>Optimize All Queries with Index Recommendations</strong> (+ optional Debug variant)</td>
+            <td>Batch optimization over multiple statements in scope; debug variant increases index pipeline logging.</td>
+          </tr>
+          <tr>
+            <td>Slow query log / performance tools</td>
+            <td>Some flows open the workbench with SQL (and sometimes target database context) from a template or log entry.</td>
+          </tr>
+          <tr>
+            <td>Performance monitor / template “Explain” actions</td>
+            <td>Can launch the workbench with a stored sample query for that template.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted">Exact command titles may include a <code>sqllens.ai:</code> prefix depending on build; search the palette for “Optimize” or “Query Optimizer”.</p>
+    </section>
+
+    <section id="layout">
+      <h2>Workbench layout</h2>
+      <h3>SQL panes</h3>
+      <ul>
+        <li><strong>Your query</strong> — editable SQL (Monaco).</li>
+        <li><strong>Optimizer query</strong> — optional read-only pane showing the statement MySQL exposes for analysis when <code>EXPLAIN FORMAT=JSON</code> (or related) supplies a rewritten/normalized form. Use <strong>Refresh Optimizer Query</strong> when it is empty but JSON succeeded.</li>
+      </ul>
+      <h3>Primary toolbar (overview)</h3>
+      <ul>
+        <li><strong>Analyze</strong> — recommendations &amp; inline index/rewrite summary (default detail view).</li>
+        <li><strong>Explain</strong> — tabular <code>EXPLAIN</code>.</li>
+        <li><strong>Visual explain</strong> — graphical plan (can be disabled globally; see Settings).</li>
+        <li><strong>Rewrites / Tips</strong> — dedicated tab for rewriter output.</li>
+        <li><strong>Format</strong> / <strong>Clear</strong> — formatting and reset of the SQL panes.</li>
+        <li><strong>Trace</strong> — human-readable algorithm trace (see below).</li>
+        <li><strong>Copy Index DDL</strong> — copies actionable <code>ALTER TABLE … ADD INDEX</code> (or related) statements.</li>
+        <li><strong>Create Index</strong> — guided create with preflight impact where applicable; supports single and multi-index flows.</li>
+      </ul>
+    </section>
+
+    <section id="analyze">
+      <h2>Analyze, recommendations &amp; transaction table (TT)</h2>
+      <p>
+        The <strong>index recommender</strong> classifies tables using join roles, <code>EXPLAIN</code> access types, and local filters. It chooses a <strong>transaction table (TT)</strong> per plan block for multi-table queries and scores candidates.
+        You will see both <strong>primary</strong> suggestions and <strong>optional / alternative</strong> indexes (for example when two trailing strategies compete, or when a refinement is secondary).
+      </p>
+      <ul>
+        <li><strong>Primary recommendations</strong> — shown first; included by default in bulk “Create indexes” checks.</li>
+        <li><strong>Optional alternatives</strong> — same panel, clearly labeled; bulk UI leaves them unchecked by default so you opt in deliberately.</li>
+        <li><strong>Existing index labels</strong> — recommendations may reference whether an identical or prefix/subset index already exists (exact / prefix / set), with adjusted messaging.</li>
+        <li><strong>Impact &amp; confidence</strong> — heuristic labels driven by estimated rows and rule outcomes (not a guarantee of production speedup).</li>
+      </ul>
+      <div class="callout">
+        <strong>Join vs filter.</strong> The optimizer often shows join predicates inside <code>WHERE</code> in the rewritten SQL — the trace explains which equalities were interpreted as join edges vs local filters when debugging TT and index eligibility.
+      </div>
+    </section>
+
+    <section id="explain">
+      <h2>EXPLAIN views</h2>
+      <ul>
+        <li><strong>Traditional table</strong> — classic <code>EXPLAIN</code> columns.</li>
+        <li><strong>Visual explain</strong> — node graph for quick intuition.</li>
+        <li><strong>TREE</strong> — hierarchical text plan (<code>EXPLAIN FORMAT=TREE</code>) when supported.</li>
+        <li><strong>JSON</strong> — raw JSON for tooling or deep inspection.</li>
+      </ul>
+      <p class="muted">
+        Setting <code>skyline-mysql.queryOptimizer.disableVisualExplain</code> hides visual explain rendering if your environment hits webview rendering limits.
+      </p>
+    </section>
+
+    <section id="trace">
+      <h2>Algorithm trace</h2>
+      <p>
+        The <strong>Trace</strong> button switches the overview detail panel to a structured, human-readable log: clause split, join graph, TT selection rationale, eligible columns, <code>EXPLAIN</code> rows used for scoring, and final index decisions.
+        Use <strong>Refresh Trace</strong> after changing SQL or rerunning analysis.
+      </p>
+      <p class="muted">Implementation lives in the workbench trace panel and index debug pipeline; verbose JSON dumps are optional via settings (below).</p>
+    </section>
+
+    <section id="rewrites">
+      <h2>Rewrites / tips</h2>
+      <p>The <strong>Query rewriter</strong> suggests structural or stylistic improvements (non-DDL). Review each suggestion against your semantics and compatibility requirements before adopting.</p>
+    </section>
+
+    <section id="indexes-ai">
+      <h2>Index suggestions &amp; AI recommendations</h2>
+      <p>
+        Inside the richer index UX, you can switch between <strong>internal</strong> (rules + <code>EXPLAIN</code> + catalog) suggestions and optional <strong>AI recommendations</strong> when your org enables LLM-backed flows.
+        AI output is advisory; validate with <code>EXPLAIN</code> and your workload.
+      </p>
+    </section>
+
+    <section id="create-index">
+      <h2>Create index, bulk create &amp; validation</h2>
+      <h3>Single index</h3>
+      <ul>
+        <li>Preflight can summarize table size/engine and qualitative risk before <code>ALTER</code>.</li>
+        <li>DDL executes as an isolated statement to avoid batching mistakes.</li>
+        <li>After success, the workbench collects <strong>EXPLAIN before/after</strong> and presents a comparison view; optional <strong>profiler</strong>-based validation is available where supported when you explicitly choose validation.</li>
+      </ul>
+      <h3>Bulk create</h3>
+      <ul>
+        <li>Select multiple DDL rows; optional indexes start unchecked.</li>
+        <li>Progress and per-index outcomes are summarized after the run.</li>
+      </ul>
+      <p class="muted">Closing the result pop-up triggers a refreshed full analysis so the plan and recommendations reflect the new indexes.</p>
+    </section>
+
+    <section id="batch">
+      <h2>Optimize all queries</h2>
+      <p>
+        The <strong>Optimize All Queries with Index Recommendations</strong> command analyzes many statements from the current editor context and surfaces index opportunities in aggregate.
+        Use the <strong>Debug</strong> variant when you need extended recommender traces in logs for support or regression work.
+      </p>
+    </section>
+
+    <section id="settings">
+      <h2>Settings &amp; diagnostics</h2>
+      <table>
+        <thead>
+          <tr><th>Setting / behavior</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>skyline-mysql.queryOptimizerVerboseIndexLog</code></td>
+            <td>After Analyze, emits the full index pipeline detail to the MySQL output channel (JSON / stages). Leave off for quieter sessions.</td>
+          </tr>
+          <tr>
+            <td><code>skyline-mysql.queryOptimizer.disableVisualExplain</code></td>
+            <td>Disables visual explain rendering in the panel.</td>
+          </tr>
+          <tr>
+            <td>SQL comment artifacts (<code>-- sqllens.ai:</code>)</td>
+            <td>Workbench may annotate SQL exports; runner paths strip these fragments before executing user SQL where integrated.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted">
+        Behavior analytics hooks exist for workspace events (tabs opened, analysis success, profiler deltas, etc.) — gated by Skyline telemetry and entitlement policy.
+      </p>
+    </section>
+
+    <section id="related">
+      <h2>Related repository docs</h2>
+      <ul>
+        <li><code>docs/QUERY_OPTIMIZER_FULL_ALGORITHM_CASES.json</code> — curated algorithm scenarios/regression corpus.</li>
+        <li><code>docs/SKYLINE_API_REFERENCE.md</code> / metering — backend and usage context when applicable.</li>
+        <li><a href="skyline-product-guide.html">skyline-product-guide.html</a> — Query Builder, AI, and autocomplete in one navigator.</li>
+      </ul>
+    </section>
+
+    <footer>
+      SkyLineMySQL · <code>prod-document/query-optimizer-product-guide.html</code>
+    </footer>
+  </div>
+</body>
+</html>

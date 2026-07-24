@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Settings reference · SQLLens.AI Docs</title>
+<meta name="description" content="Every SQLLens.AI configuration key — grouped, defaulted, and cross‑linked to the feature it affects." />
+<script src="js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="index.html">Docs</a><span>›</span><span>Settings</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Reference</div>
+      <h1>Settings reference</h1>
+      <p class="lede">Every SQLLens.AI configuration key — grouped, defaulted, and cross‑linked to the feature it affects.</p>
+    </header>
+    
+<h2 id="settings-how">How to open settings</h2>
+<p>Open the VS Code Settings UI (<kbd>Ctrl</kbd>+<kbd>,</kbd> on Windows/Linux, <kbd>⌘</kbd>+<kbd>,</kbd> on macOS). Search for <code>skyline-mysql</code> — every key below appears in the Settings editor under the SQLLens.AI contribution, grouped the same way you see it in the UI.</p>
+<div class="callout note"><div class="label">Note</div><p>Defaults and enums may evolve with releases; use the in-editor settings UI after search for authoritative enum lists.</p></div>
+
+<h2 id="settings-ai">AI / LLM (<code>skyline-mysql.ai.*</code>)</h2>
+<table><thead><tr><th>Setting id</th><th>What it does</th><th>Default / typical</th></tr></thead><tbody>
+<tr><td><code>skyline-mysql.ai.enabled</code></td><td>Enable AI-powered SQL generation from natural language.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.ai.defaultProvider</code></td><td>Default AI provider (<code>auto</code>, <code>openai</code>, <code>anthropic</code>, <code>ollama</code>, <code>custom</code>, …).</td><td><code>auto</code></td></tr>
+<tr><td><code>skyline-mysql.ai.fallbackOrder</code></td><td>Provider order after routing (OpenRouter, Groq, Grok, …).</td><td>array in settings UI</td></tr>
+<tr><td><code>skyline-mysql.ai.preferredProvider</code></td><td>If set, tried first before fallback chain.</td><td><code>""</code></td></tr>
+<tr><td><code>skyline-mysql.ai.enableUserLlmKeys</code></td><td>When true, your Secret Storage keys override bundled keys where set.</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.ai.schemaContextMode</code></td><td><code>schemaOnly</code> (structure only; no rows) vs <code>none</code>.</td><td><code>schemaOnly</code></td></tr>
+<tr><td><code>skyline-mysql.ai.includeSchemaContext</code></td><td>Legacy toggle — if false, no schema sent (overrides schemaContextMode).</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.ai.maxSchemaItems</code></td><td>Maximum tables included in schema context.</td><td><code>50</code></td></tr>
+<tr><td><code>skyline-mysql.ai.sqlGeneration.freeTierEnabled</code></td><td>Integrated “free tier” routing (Groq-first, OpenRouter fallback, …).</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.ai.sqlGeneration.integratedPreferGroqOnly</code></td><td>Integrated Cloud: prefer Groq · openai/gpt-oss-120b first.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.ai.sqlGeneration.preferCompactSchema</code></td><td>Send compact schema block for large databases.</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.ai.sqlGeneration.domainPersonaPreset</code> / <code>domainPersona</code></td><td>Optional domain briefing in prompts.</td><td>preset / multiline text</td></tr>
+<tr><td><code>skyline-mysql.ai.sqlGeneration.includeExplanationComments</code></td><td>Allow model to add SQL line comments explaining logic.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.ai.openrouter.*</code></td><td>OpenRouter model, custom slug, max tokens.</td><td>see Settings UI dropdown</td></tr>
+<tr><td><code>skyline-mysql.ai.groq.model</code> / <code>skyline-mysql.ai.grok.*</code> / <code>openai.*</code> / <code>anthropic.*</code> / <code>ollama.*</code> / <code>custom.*</code></td><td>Per-provider endpoints, models and token ceilings.</td><td>per provider</td></tr>
+</tbody></table>
+<p>Concepts: <a href="modules/ai-llm-integration.html">LLMs &amp; AI</a> · Privacy: schema metadata only unless you disable schema context.</p>
+
+<h2 id="settings-exec">Execution, caching &amp; results</h2>
+<table><thead><tr><th>Setting id</th><th>What it does</th><th>Default / typical</th></tr></thead><tbody>
+<tr><td><code>skyline-mysql.defaultSelectLimit</code></td><td>Default row limit appended to SELECT queries.</td><td><code>1000</code> (10–100000)</td></tr>
+<tr><td><code>skyline-mysql.queryTimeout</code></td><td>Query execution timeout (ms).</td><td><code>300000</code></td></tr>
+<tr><td><code>skyline-mysql.enableResultCache</code></td><td>Cache schema metadata (tables, columns, …) for responsiveness.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.resultDisplayMode</code></td><td><code>panel</code> (bottom panel) vs <code>tab</code> (separate editor tab).</td><td><code>panel</code></td></tr>
+<tr><td><code>skyline-mysql.cacheExpiration</code></td><td>Schema cache TTL (ms).</td><td><code>300000</code></td></tr>
+<tr><td><code>skyline-mysql.highlightSQLBlock</code></td><td>Highlight active SQL block in editor.</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.preferConnectionName</code></td><td>Prefer connection label in UI (localized).</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.disableSqlCodeLen</code></td><td>Disable SQL CodeLens row.</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.debugExtensionTrace</code></td><td>Verbose extension tracing (investigations only).</td><td><code>false</code></td></tr>
+</tbody></table>
+
+<h2 id="settings-editor">Editor, drag‑drop &amp; JOIN completions</h2>
+<table><thead><tr><th>Setting id</th><th>What it does</th><th>Default / typical</th></tr></thead><tbody>
+<tr><td><code>skyline-mysql.dragColumn.insertAtDropPosition</code></td><td>Insert dropped column at cursor vs legacy WHERE append.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.dragColumn.insertionHighlightAnimation</code></td><td>Flash changed range after tree drop.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.dragColumn.debugLogs</code></td><td>Verbose column-drag logs.</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.dragColumn.structuredSplitInsert</code></td><td>Structured clause-boundary insert on simple SELECT.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.dragColumn.clauseMode</code></td><td><code>automatic</code> vs <code>quickPick</code> clause choice after drop.</td><td><code>automatic</code></td></tr>
+<tr><td><code>skyline-mysql.joinCompletions.useInformationSchemaCatalog</code></td><td>Build JOIN suggestions from INFORMATION_SCHEMA FKs.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.joinCompletions.showDeptEmpSubqueryBridge</code></td><td>Extra sample-DB bridges (employees DB).</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.debugJoinPatternCompletions</code></td><td>Console logs for JOIN completion paths.</td><td><code>false</code></td></tr>
+</tbody></table>
+<p>Workflow: <a href="modules/sql-autocomplete.html#ac-overview">Autocomplete &amp; JOIN helpers</a> · <a href="modules/query-builder.html">Query builder</a>.</p>
+
+<h2 id="settings-optimizer">Query Optimizer</h2>
+<table><thead><tr><th>Setting id</th><th>What it does</th><th>Default / typical</th></tr></thead><tbody>
+<tr><td><code>skyline-mysql.queryOptimizer.disableVisualExplain</code></td><td>Disable Visual Explain rendering in QO panel (tree/JSON remain).</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.queryOptimizerVerboseIndexLog</code></td><td>After Analyze, pipe full index recommender pipeline to MySQL output channel.</td><td><code>false</code></td></tr>
+</tbody></table>
+<p>Tour: <a href="modules/query-optimizer.html">Query Optimizer (QO)</a>.</p>
+
+<h2 id="settings-performance">Performance Monitor &amp; analytics</h2>
+<table><thead><tr><th>Setting id</th><th>What it does</th><th>Default / typical</th></tr></thead><tbody>
+<tr><td><code>skyline-mysql.analytics.debug</code></td><td>Verbose PM / profiler diagnostics in Output › MySQL.</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.analytics.forceProcessListMode</code></td><td>Skip Performance Schema — use SHOW FULL PROCESSLIST only.</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.analytics.metricsPollingIntervalMs</code></td><td>How often dashboards poll GLOBAL STATUS / InnoDB status.</td><td><code>60000</code></td></tr>
+</tbody></table>
+<p>Tour · diagnostics palette: <a href="modules/performance-monitor.html#pm-diagnostics"><code>#pm-diagnostics</code></a>.</p>
+
+<h2 id="settings-cloud">sqllens.ai / Skyline API</h2>
+<table><thead><tr><th>Setting id</th><th>What it does</th><th>Default / typical</th></tr></thead><tbody>
+<tr><td><code>skyline-mysql.skylineApi.enabled</code></td><td>When true, explorer / saved connections may require cloud sign‑in per product policy.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.skylineApi.baseUrl</code></td><td>API base URL (no trailing slash).</td><td><code>https://api.skylineai.app</code></td></tr>
+<tr><td><code>skyline-mysql.skylineApi.authPageUrl</code></td><td>Web login page URL.</td><td><code>https://www.skylineai.app/auth</code></td></tr>
+<tr><td><code>skyline-mysql.skylineApi.sendUsageEvents</code></td><td>POST usage metering events.</td><td><code>true</code></td></tr>
+</tbody></table>
+<p>Concepts · offline: <a href="modules/cloud-account.html">Cloud &amp; sqllens.ai</a>.</p>
+
+<h2 id="settings-themes">Explorer visibility &amp; themes / grammars</h2>
+<table><thead><tr><th>Setting id</th><th>What it does</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>skyline-mysql.showUser</code></td><td>Show Users node under connection.</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.showView</code></td><td>Show views.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.showQuery</code></td><td>Show saved-query nodes.</td><td><code>false</code></td></tr>
+<tr><td><code>skyline-mysql.showProcedure</code></td><td>Show stored procedures.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.showFunction</code></td><td>Show functions.</td><td><code>true</code></td></tr>
+<tr><td><code>skyline-mysql.showTrigger</code></td><td>Show triggers.</td><td><code>true</code></td></tr>
+</tbody></table>
+<p>SQL editor themes bundled with SQLLens.AI appear in <strong>Preferences → Color Theme</strong>. Optional · <code>.es</code> grammar is contributed for ElasticSearch‑style snippets; grammar activates when matching files open.</p>
+<figure class="doc-media"><div class="frame">Screenshot placeholder</div><figcaption class="caption">Screenshot — Color Theme list with SQLLens.AI themes</figcaption></figure>
+<p>Keyboard overrides: <a href="modules/keyboard-shortcuts.html#kbd-customize">Keyboard shortcuts → Customizing</a>.</p>
+
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="get-started.html">Get started</a></li>
+          <li><a href="connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="js/docs.js"></script>
+</body>
+</html>

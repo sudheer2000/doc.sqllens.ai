@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Query builder · SQLLens.AI Docs</title>
+<meta name="description" content="SQLLens.AI Query Builder: drag tables and columns from the explorer into the SQL editor, shortcuts before a drop, FK-aware JOINs, clause-letter stubs — with demo GIF and settings." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>Query builder</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Pillar</div>
+      <h1>Query builder</h1>
+      <p class="lede">Schema-driven assembly in the SQL editor: drag tables and columns from the live connection tree, type shortcuts before you drop, and let foreign‑key metadata drive JOIN predicates. Generated SQL stays plain text—you keep full control.</p>
+    </header>
+
+<h2 id="qb-overview">Overview</h2>
+<p>SQLLens.AI’s Query Builder is <strong>not</strong> a separate diagram canvas. It sits <strong>in the editor next to your code</strong>: the explorer tree is the source of truth for object names and relationships, drops insert or extend real MySQL statements, and you refine with normal editing.</p>
+<p><strong>When it shines:</strong> you need correctly spelled identifiers, repeatable scaffolds, or multi‑table JOINs anchored to FK metadata—as opposed to exploratory natural‑language authoring (that's a better fit for <a href="ai-llm-integration.html">SQL with AI</a>).</p>
+<ul>
+<li><strong>Speed:</strong> <code>SELECT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>INSERT</code> stubs without typing long qualified names.</li>
+<li><strong>Correctness:</strong> JOIN <code>ON</code> conditions can leverage cached FK paths (multiple paths ⇒ disambiguation instead of silently guessing).</li>
+<li><strong>Clause awareness:</strong> Column drops respect where the caret sits—lists, predicates, <code>JOIN … ON</code>, <code>ORDER BY</code>, etc.</li>
+</ul>
+<div class="callout note"><div class="label">Premium / entitlement</div><p>Some teams gate high‑drag features behind sqllens.ai Cloud entitlement flag <strong><code>qb</code></strong> (see <a href="cloud-account.html">Cloud &amp; account</a> if your org uses sqllens).</p></div>
+
+<h2 id="qb-demo-storyboard">Demo (GIF)</h2>
+<p>Short screen recording bundled with these docs: intro plus Query Builder in VS Code — open a <code>.sql</code> file, optionally type <kbd>s</kbd> for a SELECT scaffold, drag a table from the sidebar tree into the editor, then continue with JOINs and clauses as shown.</p>
+<figure class="doc-media doc-media--gif">
+<p class="caption" style="margin:0;padding:.65rem .9rem;font-weight:600;border-bottom:1px solid var(--border)">Query Builder demo</p>
+<img src="../images/query-builder-landing-demo.gif" width="640" alt="Animated demo: Query Builder — open SQL file, optional s shortcut, drag table from tree into editor." loading="lazy" decoding="async" />
+<figcaption class="caption">Screen recording of the flow above. The still diagram below highlights JOIN and subquery moments.</figcaption>
+</figure>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/query-builder-storyboard.svg" width="720" height="400" alt="Diagram: explorer tree beside editor with JOIN and subquery callouts." loading="lazy" decoding="async" />
+<figcaption class="caption">Static diagram of JOIN highlight and inner-<code>SELECT</code> scope — complements the GIF above.</figcaption>
+</figure>
+<div class="callout tip"><div class="label">Autocomplete</div><p>Typing <code>@com</code>, <code>@dba</code>, schema columns, JOIN <code>ON</code> lines, and favorites uses the same editor — see the dedicated <a href="sql-autocomplete.html">SQL autocomplete guide</a> (screenshots, <code>@</code> channels, keyboard shortcuts, and troubleshooting).</p></div>
+
+<h2 id="qb-drag-basics">Drag tables &amp; columns</h2>
+<p>Open a <code>.sql</code> tab bound to the same connection/database as your tree (same rules as workspace <strong>Active</strong> state). Drag a table for statement scaffolds, or drag columns into the clause under the caret. Views behave like tables.</p>
+<p>Shortcut tokens typed immediately before releasing the drag are expanded together with that drop—the vocabulary follows below.</p>
+
+<h2 id="qb-smart-sql">Smart SQL on drop</h2>
+<p>Drops infer intent from caret position:</p>
+<ul>
+<li>New / empty territory → starters such as <code>SELECT … FROM … LIMIT …</code>.</li>
+<li>Inside a projection list → add the column identifier.</li>
+<li>Along predicates → templates such as placeholders or bounded filters.</li>
+<li>Onto an existing <code>FROM</code> span → JOIN scaffolding with FK-derived <code>ON</code> text.</li>
+</ul>
+
+<h2 id="qb-joins">JOINs &amp; dialogs</h2>
+<p>Bringing an additional fact table evaluates the FK graph. Multiple eligible paths surface prompts so you pick an explicit topology (bridge tables vs shortcuts). Completion lists may reinforce join synonyms such as <code>LJ</code>, <code>IJ</code>, or spelled‑out verbs—pair them with the drag gesture you already use.</p>
+
+<h2 id="qb-shortcuts">Shortcuts before a drop</h2>
+
+<p>The <a href="#qb-demo-storyboard">demo above</a> (GIF and diagram) summarizes the core gestures. This section collects the shortcut vocabulary: classic tokens before a drag, JOIN synonyms, WHERE / aggregate helpers, and <a href="#qb-clause-letters">clause-letter shortcuts</a> for <code>SELECT</code> / <code>UPDATE</code> / <code>DELETE</code> stubs.</p>
+<p>SQLLens.AI recognizes a wide set of tokens (core DML, JOIN types, <code>WHERE</code> / aggregates, DDL-style fragments, metadata and maintenance helpers). Use autocomplete in the editor to discover spellings that match your muscle memory.</p>
+
+<h3 id="qb-storyboard-beats">What the GIF and diagram cover</h3>
+<p>Narration aligned with <a href="#qb-demo-storyboard">Demo (GIF)</a> plus the schematic:</p>
+<ul>
+<li><strong>Starter:</strong> optional <kbd>s</kbd> → drag a table from the tree → <code>SELECT</code>-style scaffold with placeholders.</li>
+<li><strong>JOIN:</strong> when you extend the query, <code>JOIN … ON …</code> can appear with FK-aware conditions (diagram shows the highlighted JOIN moment).</li>
+<li><strong>Subquery:</strong> nested <code>SELECT</code> / <code>IN</code> patterns keep JOIN logic scoped inside the inner query where intended (diagram).</li>
+</ul>
+
+<h3 id="qb-whats-new-editor">What’s new in the editor</h3>
+<p>The GIF reflects current shipping Query Builder UX in VS Code; extension updates may add gestures before these docs refresh.</p>
+
+<div class="callout tip"><div class="label">Gesture</div><p>Type the shortcut at the <strong>end of the current line</strong> in the SQL editor, then <strong>drag</strong> a table or column from the connection tree. Drops are <strong>clause-aware</strong>: caret in <code>WHERE</code> vs <code>SELECT</code> vs <code>JOIN … ON</code> changes the fragment.</p></div>
+
+<div class="callout warn"><div class="label">Single-letter overload</div><p>Common mappings: <kbd>s</kbd> → SELECT-style flow; <kbd>d</kbd> → DELETE (not “descending”—use <kbd>od</kbd> for <code>ORDER BY … DESC</code>); <kbd>c</kbd> → CREATE TABLE patterns; <kbd>desc</kbd> / <kbd>dsc</kbd> → <code>DESCRIBE</code>.</p></div>
+
+<p><strong>Shortcut families</strong>:</p>
+<ul>
+<li><strong>Classic + JOIN:</strong> <kbd>s</kbd> / spelled <code>select</code> variants; JOIN tokens <kbd>lj</kbd> / <kbd>LJ</kbd>, <kbd>ij</kbd>, spelled join words—combine with dragging the second table into an existing <code>FROM</code>.</li>
+<li><strong>WHERE / aggregates:</strong> <kbd>w</kbd>, <kbd>wl</kbd>/<kbd>wlike</kbd>, <kbd>wi</kbd>/<kbd>win</kbd>, BETWEEN / NULL helpers, <kbd>g</kbd>/<kbd>gb</kbd>, <kbd>h</kbd>, <kbd>o</kbd>/<kbd>oa</kbd>/<kbd>od</kbd>, <kbd>cnt</kbd>, <kbd>avg</kbd>, …</li>
+<li><strong>Autocomplete reinforcement:</strong> completion items such as <code>IN</code>, <code>SE</code>, <code>LJ</code> reinforce the same vocabulary while you type.</li>
+</ul>
+
+<h3 id="qb-clause-letters">Clause-letter shortcuts (<kbd>S</kbd> / <kbd>U</kbd> / <kbd>D</kbd> + <kbd>W</kbd> <kbd>G</kbd> <kbd>O</kbd> <kbd>H</kbd>)</h3>
+<p>On a <strong>new stub</strong> — start of line (after optional spaces) or right after a <strong>semicolon</strong> — type a token, then drag a <strong>table</strong> or <strong>column</strong>:</p>
+<ul>
+<li><strong>First letter:</strong> <kbd>S</kbd> → <code>SELECT</code>, <kbd>U</kbd> → <code>UPDATE</code>, <kbd>D</kbd> → <code>DELETE</code>.</li>
+<li><strong>Next letters</strong> (any order): <kbd>W</kbd> WHERE, <kbd>G</kbd> GROUP BY, <kbd>H</kbd> HAVING, <kbd>O</kbd> ORDER BY.</li>
+<li><strong>Generated order</strong> is always valid SQL: WHERE → GROUP BY → HAVING → ORDER BY (for <code>SELECT</code>). Examples: <code>SWG</code>, <code>SGW</code>, <code>WGS</code> produce the same clauses.</li>
+<li><strong>Column drag:</strong> the dragged column is used in those clauses (qualified with the table alias).</li>
+<li><strong>Table drag:</strong> anchor column is <code>id</code> (name match), else primary key, else the first column — used the same way.</li>
+<li><strong>UPDATE / DELETE:</strong> existing column-aware templates apply; an <kbd>O</kbd> in the token adds <code>ORDER BY</code> on that anchor/dragged column.</li>
+</ul>
+<p style="margin-top:.75rem;font-size:13px;color:var(--fg-muted)">Typing only <kbd>S</kbd>, <kbd>U</kbd>, or <kbd>D</kbd> (no <code>W</code>/<code>G</code>/<code>O</code>/<code>H</code>) still uses the classic single-letter shortcuts; the multi-letter form requires <strong>at least one</strong> of <code>W</code>, <code>G</code>, <code>O</code>, or <code>H</code> after the root letter.</p>
+
+<h3 id="qb-drag-ux">Drag and drop into SQL</h3>
+<ul>
+<li>Tree drags use a <strong>single custom payload</strong> for the SQL editor, so you should not see the editor’s <strong>“Show drop options…”</strong> chip after a normal tree → SQL drop.</li>
+<li><strong>EXISTS / IN</strong> inner bodies prefer a real <code>SELECT</code> column list (or <code>*</code>) instead of a bare <code>SELECT 1</code> placeholder where metadata is available.</li>
+<li>In <strong>comparison</strong> slots (for example <code>salary &gt; ( … )</code>), the builder tries to match the <strong>left-hand column name</strong> to the inner table when generating the subquery.</li>
+</ul>
+
+<h3 id="qb-related-anchors-guide">Also on this page</h3>
+<ul>
+<li><a href="#qb-overview">What the Query Builder is</a></li>
+<li><a href="#qb-drag-basics">Drag tables &amp; columns</a></li>
+<li><a href="#qb-shortcuts">Shortcuts before a drop</a> (classic <kbd>s</kbd> / <kbd>LJ</kbd> patterns plus <a href="#qb-clause-letters">clause-letter shortcuts</a>).</li>
+</ul>
+
+<h2 id="qb-sample-db"><code>employees</code> sample database</h2>
+<p>Historical salary rows, department bridges, and wide dimensions make MySQL's official <strong>employees</strong> corpus ideal for JOIN webinars.</p>
+<p>Upstream: <a href="https://github.com/datacharmer/test_db" target="_blank" rel="noopener noreferrer">github.com/datacharmer/test_db</a>.</p>
+<div class="callout note"><div class="label">Loading the sample</div><p>Follow the <a href="https://github.com/datacharmer/test_db" target="_blank" rel="noopener noreferrer">test_db</a> README to import <strong>employees</strong> into your local server (requires the <code>mysql</code> client and appropriate credentials).</p></div>
+
+<h2 id="qb-demo-scenarios">Scenario SQL targets (<code>employees</code>)</h2>
+<p>Example patterns people often rebuild with the builder on <strong>employees</strong>:</p>
+<ul>
+<li><strong>Department headcounts:</strong> <code>SELECT d.dept_name, COUNT(*) … JOIN dept_emp … JOIN departments … GROUP BY … ORDER BY …</code>.</li>
+<li><strong>Current averages:</strong> salary facts with active <code>to_date='9999-01-01'</code> guards.</li>
+<li><strong>Managers with readable names:</strong> <code>dept_manager</code> bridging to <code>employees</code>.</li>
+<li><strong>Filtered titles + cohort aggregates:</strong> predicate on titles plus expressive grouping.</li>
+<li><strong>Compared-to-average filters:</strong> scalar subqueries for comparison-slot intelligence.</li>
+</ul>
+
+<h2 id="qb-settings">Settings that shape drags</h2>
+<p>See <a href="../settings.html#settings-editor">Settings → Editor, drag‑drop &amp; JOIN completions</a> (<code>skyline-mysql.*</code>):</p>
+<ul>
+<li><code>skyline-mysql.dragColumn.insertAtDropPosition</code></li>
+<li><code>skyline-mysql.dragColumn.insertionHighlightAnimation</code></li>
+<li><code>skyline-mysql.dragColumn.structuredSplitInsert</code>, <code>skyline-mysql.dragColumn.clauseMode</code></li>
+<li><code>skyline-mysql.joinCompletions.useInformationSchemaCatalog</code>, <code>skyline-mysql.joinCompletions.showDeptEmpSubqueryBridge</code></li>
+<li><code>skyline-mysql.dragColumn.debugLogs</code>, <code>skyline-mysql.debugJoinPatternCompletions</code></li>
+</ul>
+
+<h2 id="qb-connection-match">Connection mismatch prompts</h2>
+<p>Dragging from a schema misaligned with the active workspace binding prompts you to remap the tab—or cancel—so queries never silently target the wrong connection/database.</p>
+
+<h2 id="qb-tips">Tips</h2>
+<ul>
+<li>Prep two scripted beats ahead of webinars; ambiguity dialogs show multiple FK paths were detected.</li>
+<li>Refresh explorer metadata after DDL so caches stay accurate.</li>
+<li>Add narrow <code>LIMIT</code> guards during exploratory scaffolding on shared clusters.</li>
+</ul>
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

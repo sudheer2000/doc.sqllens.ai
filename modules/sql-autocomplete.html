@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SQL autocomplete · SQLLens.AI Docs</title>
+<meta name="description" content="SQLLens.AI autocomplete in VS Code: @ command channels, schema IntelliSense, JOIN ON lines, favorites, diagnostics, keyboard shortcuts, and Query Builder token hints." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><a href="query-builder.html">Query builder</a><span>›</span><span>SQL autocomplete</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">SQL editor</div>
+      <h1>SQL autocomplete</h1>
+      <p class="lede">Schema-aware IntelliSense in your <code>.sql</code> files: type <code>@</code> channels for command libraries, pick tables and columns from live metadata, accept FK-aware <code>JOIN … ON</code> lines, and reuse favorites and recent queries — all bound to the connection your tab is scoped to.</p>
+    </header>
+
+<h2 id="ac-overview">Overview</h2>
+<p>SQLLens.AI adds a completion provider on top of VS Code’s SQL editor. Suggestions come from your <strong>active connection</strong> (explorer tree + per-file database binding), curated command libraries, starred favorites, and execution history.</p>
+<p>This page is the full autocomplete reference. For drag-and-drop assembly and shortcut tokens that pair with tree drags, see the <a href="query-builder.html">Query builder</a> guide (start with the <a href="query-builder.html#qb-demo-storyboard">demo storyboard</a>).</p>
+<ul>
+<li><strong>Type to complete</strong> — tables, columns, keywords, functions, snippets.</li>
+<li><strong><code>@</code> channels</strong> — filter thousands of DBA commands, diagnostics, DDL/DML templates, favorites, and history.</li>
+<li><strong>JOIN intelligence</strong> — suggested <code>ON</code> predicates from foreign keys and learned patterns.</li>
+<li><strong>Reuse</strong> — favorites, frequent queries, and recent runs surface at statement start.</li>
+</ul>
+
+<h2 id="ac-demo-gallery">Screenshots (what you see in the editor)</h2>
+
+<h3 id="ac-demo-at-com">@com — common MySQL / MariaDB commands</h3>
+<p>Type <code>@com</code> at the start of a line (or after <code>;</code>) to open the command catalog. Keep typing to filter — matching letters highlight in the list. Each row shows the channel tag and engine on the right (for example <code>@com · MySQL / MariaDB</code>).</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/autocomplete-at-com.png" width="720" alt="Autocomplete list after typing @com: Show Full Processlist, session sql_mode, USE database, SHOW tables, autocommit, foreign_key_checks, SET NAMES, time_zone." loading="lazy" decoding="async" />
+<figcaption class="caption">Command channel — session utilities, metadata helpers, and charset/time zone snippets.</figcaption>
+</figure>
+
+<h3 id="ac-demo-at-dba">@dba — same library, DBA-oriented filter</h3>
+<p><code>@dba</code> is an alias for the command channel — ideal for process lists, session settings, and maintenance templates DBAs reach for daily.</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/autocomplete-at-dba.png" width="720" alt="Autocomplete after @dba with the same command catalog filtered for DBA workflows." loading="lazy" decoding="async" />
+<figcaption class="caption"><code>@dba</code> opens the same family of pre-built statements as <code>@com</code>; use whichever tag matches your muscle memory.</figcaption>
+</figure>
+
+<h3 id="ac-demo-at-dba-search">Search inside a channel</h3>
+<p>After the channel tag, add words to narrow the list. Example: <code>@dba long RunningQueryCount</code> surfaces long-running query diagnostics (labels show engine/version hints such as <code>MySQL 5.7+</code> or <code>InnoDB</code>).</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/autocomplete-at-dba-filter.png" width="720" alt="Filtered autocomplete for @dba long RunningQueryCount showing Long Running Queries templates." loading="lazy" decoding="async" />
+<figcaption class="caption">Multi-word filtering inside an <code>@</code> channel — no need to memorize exact catalog titles.</figcaption>
+</figure>
+
+<h3 id="ac-demo-accept">Accept a catalog row → full SQL</h3>
+<p>Pick a row with <kbd>Enter</kbd> or <kbd>Tab</kbd>. The entire <code>@…</code> prefix is replaced by the stored SQL (multi-line templates insert as one action).</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/autocomplete-command-insert.png" width="720" alt="Editor after accepting Show Full Processlist: formatted SELECT from information_schema.processlist with WHERE and ORDER BY." loading="lazy" decoding="async" />
+<figcaption class="caption">Accepted command — ready to run with <strong>▶ Run SQL</strong> or tweak predicates first.</figcaption>
+</figure>
+
+<h3 id="ac-demo-schema">Schema columns &amp; functions</h3>
+<p>After <code>SELECT</code> and table references, invoke completions for qualified columns (with data types in the detail column) plus common functions (<code>COUNT</code>, <code>CONCAT</code>, <code>DATE_ADD</code>, …). Use this together with <a href="#ac-join-on">JOIN <code>ON</code> suggestions</a>.</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/autocomplete-columns-select.png" width="720" alt="Column autocomplete for dept_no and dept_name plus SQL functions after SELECT in a join query." loading="lazy" decoding="async" />
+<figcaption class="caption">Column + function list while building a projection — cube icon for columns, bracket icon for functions.</figcaption>
+</figure>
+
+<h2 id="ac-prereq">Connection &amp; active database</h2>
+<p>Completions reflect the database your SQL tab is bound to. If the tree <strong>Active</strong> badge and the editor disagree, you may see valid but unexpected object names.</p>
+<ul>
+<li><strong>Fix first:</strong> select the intended database in the explorer (or per-file binding) and refresh the tree if metadata changed.</li>
+<li><strong>No connection:</strong> schema rows shrink; keywords and some libraries may still appear.</li>
+<li><strong>Large catalogs:</strong> join discovery caps scan breadth so the editor stays responsive — qualify known tables when demoing huge schemas.</li>
+</ul>
+
+<h2 id="ac-invoke">How to open &amp; navigate the list</h2>
+<table>
+<thead><tr><th>Action</th><th>Windows / Linux</th><th>macOS (typical)</th></tr></thead>
+<tbody>
+<tr><td><strong>Open suggest widget</strong> (implicit)</td><td colspan="2">Keep typing when VS Code <em>Quick Suggestions</em> are enabled</td></tr>
+<tr><td><strong>Force completions</strong></td><td><kbd>Ctrl</kbd>+<kbd>Space</kbd></td><td><kbd>⌃</kbd>+<kbd>Space</kbd> or <kbd>⌘</kbd>+<kbd>Space</kbd> (keymap-dependent)</td></tr>
+<tr><td><strong>Move selection</strong></td><td colspan="2"><kbd>↑</kbd> <kbd>↓</kbd></td></tr>
+<tr><td><strong>Accept highlighted row</strong></td><td colspan="2"><kbd>Enter</kbd> or <kbd>Tab</kbd></td></tr>
+<tr><td><strong>Next snippet placeholder</strong></td><td colspan="2"><kbd>Tab</kbd> (after accepting a snippet row)</td></tr>
+<tr><td><strong>Dismiss list</strong></td><td colspan="2"><kbd>Esc</kbd></td></tr>
+<tr><td><strong>Filter as you type</strong></td><td colspan="2">More characters narrow matches; labels show category (table, column, favorite, <code>@</code> channel, …)</td></tr>
+</tbody>
+</table>
+<div class="callout note"><div class="label">Comments</div><p>Inside <code>--</code>, <code>#</code>, or <code>/* */</code> comments, SQLLens.AI does not offer SQL completions (string and backtick literals are respected).</p></div>
+<p>Editor run shortcuts (separate from the completion widget): see <a href="keyboard-shortcuts.html#kbd-defaults">Keyboard shortcuts</a> — for example <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to run the statement under the caret.</p>
+
+<h2 id="ac-at-mentions">@ mention channels (command palette in the editor)</h2>
+<p>Type <code>@</code> followed by a channel keyword, then optional filter text. The list replaces the whole <code>@…</code> span when you accept a row. Channels are <strong>progressive</strong>: <code>@f</code> → <code>@fa</code> → <code>@fav</code> works letter-by-letter without typing the full word.</p>
+
+<h3 id="ac-at-channel-table">Channel reference</h3>
+<table>
+<thead><tr><th>Type this</th><th>Also works</th><th>What appears</th></tr></thead>
+<tbody>
+<tr><td><code>@com</code></td><td><code>@command</code>, <code>@cmd</code>, <code>@sql</code>, <code>@c</code></td><td>Pre-built MySQL/MariaDB (and engine-specific) command library — session, metadata, maintenance</td></tr>
+<tr><td><code>@dba</code></td><td>(alias of command channel)</td><td>Same catalog; use for DBA runbooks (processlist, long queries, locks, …)</td></tr>
+<tr><td><code>@fav</code></td><td><code>@favorite</code>, <code>@favorites</code>, <code>@f</code></td><td>Your starred SQL from the Favorites panel</td></tr>
+<tr><td><code>@history</code></td><td><code>@his</code>, <code>@h</code></td><td>Recently executed queries on this connection</td></tr>
+<tr><td><code>@fre</code></td><td><code>@frequent</code>, <code>@frequently</code></td><td>Most-run queries (execution count) for this connection</td></tr>
+<tr><td><code>@query</code></td><td><code>@q</code></td><td>Blend of frequent + recent templates</td></tr>
+<tr><td><code>@syntax</code></td><td><code>@syn</code>, <code>@s</code></td><td>Syntax pattern templates (SELECT/INSERT shapes, …)</td></tr>
+<tr><td><code>@table</code></td><td><code>@tbl</code></td><td>Tables &amp; views from live metadata</td></tr>
+<tr><td><code>@column</code></td><td><code>@col</code></td><td>Column names (schema-scoped)</td></tr>
+<tr><td><code>@index</code></td><td><code>@idx</code></td><td>Index-related snippets and objects</td></tr>
+<tr><td><code>@explain</code></td><td><code>@exp</code></td><td><code>EXPLAIN</code> / analyze variants</td></tr>
+<tr><td><code>@ddl</code></td><td>—</td><td>CREATE / ALTER / DROP / TRUNCATE templates</td></tr>
+<tr><td><code>@dml</code></td><td>—</td><td>SELECT / INSERT / UPDATE / DELETE templates</td></tr>
+<tr><td><code>@grant</code></td><td><code>@perm</code></td><td>User &amp; privilege helpers</td></tr>
+<tr><td><code>@lock</code></td><td><code>@blk</code></td><td>Lock &amp; blocking diagnostics</td></tr>
+<tr><td><code>@repl</code></td><td><code>@replication</code>, <code>@rep</code></td><td>Replication status &amp; troubleshooting</td></tr>
+<tr><td><code>@snippet</code></td><td><code>@snip</code></td><td>Curated multi-line snippets</td></tr>
+<tr><td><code>@err</code></td><td><code>@last</code></td><td>Help tied to the last session error</td></tr>
+<tr><td><code>@pin</code></td><td><code>@star</code></td><td>Pinned / starred catalog entries</td></tr>
+</tbody>
+</table>
+<div class="callout tip"><div class="label">Examples</div>
+<ul style="margin:.35rem 0 0 1rem">
+<li><code>@com process</code> — narrow to processlist-related commands</li>
+<li><code>@dba long</code> — long-running query diagnostics</li>
+<li><code>@fav payroll</code> — starred snippets whose name or shortcut matches</li>
+<li><code>@history employees</code> — past runs touching the employees table</li>
+</ul>
+</div>
+
+<h3 id="ac-slash-mentions">Slash shortcuts (<code>/history</code>, <code>/fav</code>)</h3>
+<p>At statement start you can also type progressive slash paths:</p>
+<ul>
+<li><code>/history</code> — same bucket as <code>@history</code></li>
+<li><code>/fav</code>, <code>/favorite</code>, <code>/f</code> — favorites (not the same as <code>/fre</code>, which maps to frequent queries)</li>
+</ul>
+
+<h2 id="ac-vs-builder">Autocomplete vs Query Builder</h2>
+<table>
+<thead><tr><th></th><th>Autocomplete (this page)</th><th><a href="query-builder.html">Query Builder</a></th></tr></thead>
+<tbody>
+<tr><td><strong>Gesture</strong></td><td>Type; pick from the list (<kbd>Enter</kbd> / <kbd>Tab</kbd>)</td><td>Optional token at line end, then <strong>drag</strong> table/column from tree</td></tr>
+<tr><td><strong>Best for</strong></td><td>Spelling identifiers, <code>@</code> libraries, JOIN <code>ON</code>, reusing SQL</td><td>Multi-clause scaffolds, clause-aware drops, FK dialogs</td></tr>
+<tr><td><strong>Overlap</strong></td><td>Tokens like <code>SE</code>, <code>LJ</code>, <code>WH</code> appear as hints</td><td>Same tokens expect a drag to finish the builder flow</td></tr>
+</tbody>
+</table>
+
+<h2 id="ac-sources">What feeds the completion list</h2>
+<p>Suggestions are merged from several sources (specialized rows first, then schema objects):</p>
+<ol>
+<li><strong><code>@</code> mention channels</strong> — when an <code>@</code> or <code>/</code> mention is active, that channel owns the list.</li>
+<li><strong>Query Builder token hints</strong> — two-or-more-letter shortcuts (<code>SE</code>, <code>LJ</code>, <code>WH</code>, …) that pair with tree drags; accepting inserts text only.</li>
+<li><strong>Table aliases</strong> — <code>AS alias</code> after <code>FROM</code> / <code>JOIN</code>.</li>
+<li><strong>JOIN patterns &amp; <code>ON</code> lines</strong> — FK metadata, learned joins, confidence-ranked predicates.</li>
+<li><strong>Favorites</strong> — starred snippets (★); shortcuts you configured match too.</li>
+<li><strong>Frequent &amp; recent</strong> — queries you actually ran on this connection.</li>
+<li><strong>Diagnostic templates</strong> — health, locks, replication, space (labeled as templates).</li>
+<li><strong>Engine command library</strong> — large version-aware catalog (MySQL/MariaDB, PostgreSQL, SQLite each ship their own set).</li>
+<li><strong>Schema layer</strong> — tables, views, columns, <code>INSERT</code> column lists, DDL/DML fragments, SQL keywords.</li>
+</ol>
+<p>Library rows with the same visible title dedupe — your <strong>⭐ User Favorite</strong> wins over a generic catalog twin.</p>
+
+<h2 id="ac-join-on">JOIN targets &amp; ON conditions</h2>
+<p>After <code>JOIN</code> (or while choosing the next table), completions can insert:</p>
+<ul>
+<li>A full <code>[INNER|LEFT|…] JOIN schema.table ON …</code> snippet</li>
+<li>Just <code>ON predicate</code> after the joined table</li>
+<li>Only the predicate body when you are already inside <code>ON</code></li>
+</ul>
+<p>Suggestions blend foreign-key edges, cached successful joins, and column-name bridges. Multiple valid paths may appear — pick the one that matches your data model (bridge tables vs direct FK).</p>
+<p>Optional workspace setting <code>skyline-mysql.joinCompletions.showDeptEmpSubqueryBridge</code> adds an <code>employees</code> sample-db bridge path between <code>employees</code> and <code>departments</code> (off by default).</p>
+
+<h2 id="ac-favorites">Favorites, frequent &amp; recent</h2>
+<h3 id="ac-favorites-star">Starred favorites</h3>
+<ul>
+<li>Save from CodeLens <strong>☆ Save as Favorite</strong> or the Favorites panel.</li>
+<li>Surface at statement start, after <code>;</code>, or while typing early keywords — not in pure “pick a table after FROM” spots.</li>
+<li>Match by <strong>name</strong>, <strong>shortcuts</strong> you assign, or prefix of the stored SQL.</li>
+<li>Insert favorite: Command Palette <em>★ Favorites: Insert Query</em> — default <kbd>⌘</kbd>+<kbd>K</kbd> then <kbd>F</kbd> (<a href="keyboard-shortcuts.html#kbd-defaults">details</a>).</li>
+</ul>
+<h3 id="ac-frequent-recent">Frequent &amp; recent (automatic)</h3>
+<ul>
+<li>Recorded when you <strong>run</strong> queries — no manual starring.</li>
+<li><code>@fre</code> / <code>@frequent</code> — sorted by execution count.</li>
+<li><code>@history</code> — sorted by last run time.</li>
+<li>Labels show query type + tables when detected; detail shows run count or timestamp.</li>
+</ul>
+
+<h2 id="ac-qb-tokens">Query Builder tokens in the list</h2>
+<p>When you start a statement with two or more letters, autocomplete may show drag-and-drop hints (icons such as 📥 🔍 ✏️). These reinforce the same vocabulary as <a href="query-builder.html#qb-shortcuts">Query Builder shortcuts</a> — for example:</p>
+<table>
+<thead><tr><th>Token</th><th>Intent (after you drag from tree)</th></tr></thead>
+<tbody>
+<tr><td><code>SE</code>, <code>SEL</code>, <code>SELECT</code></td><td>SELECT scaffold</td></tr>
+<tr><td><code>IN</code>, <code>INS</code>, <code>INSERT</code></td><td>INSERT scaffold</td></tr>
+<tr><td><code>UP</code>, <code>UPDATE</code></td><td>UPDATE scaffold</td></tr>
+<tr><td><code>DE</code>, <code>DELETE</code></td><td>DELETE scaffold</td></tr>
+<tr><td><code>LJ</code>, <code>IJ</code>, <code>RJ</code>, <code>CJ</code></td><td>LEFT / INNER / RIGHT / CROSS JOIN extension</td></tr>
+<tr><td><code>WH</code>, <code>WL</code>, <code>WI</code>, <code>WB</code></td><td>WHERE / LIKE / IN / BETWEEN column predicates</td></tr>
+<tr><td><code>CR</code>, <code>CREATE</code>, <code>CT</code></td><td>CREATE TABLE patterns</td></tr>
+<tr><td><code>EXP</code>, <code>EXPLAIN</code></td><td>EXPLAIN SELECT helper</td></tr>
+</tbody>
+</table>
+<p>Single-letter builder shortcuts (<kbd>s</kbd>, <kbd>d</kbd>, …) still work for drags but do not appear in the completion list — see <a href="query-builder.html#qb-clause-letters">clause-letter shortcuts</a>.</p>
+
+<h2 id="ac-settings">Settings that affect autocomplete</h2>
+<table>
+<thead><tr><th>Setting (VS Code)</th><th>Effect</th></tr></thead>
+<tbody>
+<tr><td><code>editor.quickSuggestions</code></td><td>Controls implicit completion while typing (VS Code core)</td></tr>
+<tr><td><code>editor.suggestOnTriggerCharacters</code></td><td>Whether <code>.</code> and similar trigger the widget</td></tr>
+<tr><td><code>editor.tabCompletion</code></td><td>Tab accepts suggestions when on</td></tr>
+<tr><td><code>skyline-mysql.joinCompletions.showDeptEmpSubqueryBridge</code></td><td>Extra bridge join suggestion on sample <code>employees</code> DB</td></tr>
+</tbody>
+</table>
+<p>Full settings index: <a href="../settings.html#settings-editor">Editor &amp; drag-and-drop</a>.</p>
+
+<h2 id="ac-troubleshoot">Troubleshooting</h2>
+<ul>
+<li><strong>Empty or tiny list</strong> — confirm connection + SQL language mode; try <kbd>Ctrl</kbd>+<kbd>Space</kbd>; check you are not inside a comment.</li>
+<li><strong>Wrong tables</strong> — wrong active database; refresh tree and reselect DB for the tab.</li>
+<li><strong>No JOIN rows</strong> — caret not in JOIN context, or metadata still loading — expand connection in tree first.</li>
+<li><strong><code>@</code> channel shows nothing</strong> — finish typing the channel keyword (<code>@com</code> not bare <code>@c</code> mid-word); add filter words or try <code>@dba</code>.</li>
+<li><strong>No favorites</strong> — mid-statement positions suppress them; star a query first; pre-seeded library rows with zero usage stay in the Favorites panel only.</li>
+<li><strong>No frequent/recent</strong> — run a query once on this connection, then invoke completions at the start of the next statement.</li>
+</ul>
+
+<h2 id="ac-related">Related docs</h2>
+<ul>
+<li><a href="sql-workspace.html#ws-autocomplete">SQL workspace — autocomplete summary</a></li>
+<li><a href="query-builder.html#qb-demo-storyboard">Query builder demo</a></li>
+<li><a href="sql-workspace.html#ws-favorites">SQL Favorites panel</a></li>
+<li><a href="keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="advanced-testing.html#adv-diagnostics">Diagnostic query library</a></li>
+</ul>
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

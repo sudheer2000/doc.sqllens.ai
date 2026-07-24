@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Get started · SQLLens.AI Docs</title>
+<meta name="description" content="Install SQLLens.AI, open the sidebar, and run your first query." />
+<script src="js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="index.html">Docs</a><span>›</span><span>Get started</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Guides</div>
+      <h1>Get started</h1>
+      <p class="lede">Install SQLLens.AI (<strong>SQLLens.AI</strong> on the Marketplace, publisher <strong>skylineai</strong>, extension id <code>skylineai.sqllens</code>), open the sidebar, connect a database, and run SQL from any <code>.sql</code> file.</p>
+    </header>
+    
+<h2 id="install">Install the extension</h2>
+<p>Works in <strong>Visual Studio Code</strong> and editors with a compatible VS Code runtime (e.g. Cursor).</p>
+<ol>
+  <li>Open the Extensions view (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd> on Windows/Linux, <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd> on macOS).</li>
+  <li>Search for <strong>SQLLens.AI</strong> and install it.</li>
+  <li>Reload the editor if prompted.</li>
+</ol>
+<figure class="doc-media "><div class="frame">Screenshot placeholder</div><figcaption class="caption">Screenshot — Extensions view with SQLLens.AI listed</figcaption></figure>
+
+<h2 id="open-sidebar">Open the sqllens.ai sidebar</h2>
+<p>Click the SQLLens.AI icon in the activity bar to open the sidebar. You'll see the connections explorer at the top and panels for results, favorites and status below the editor.</p>
+<div class="callout tip"><div class="label">Tip</div><p>Pin the SQLLens.AI views to the secondary side bar if you want connections visible while writing code.</p></div>
+
+<h2 id="credentials">Credentials &amp; security</h2>
+<p>Connection passwords are stored in VS Code’s Secret Storage. You can use SQLLens.AI fully offline for MySQL/MariaDB work—disable cloud-backed features via <code>skyline-mysql.skylineApi.enabled</code> if your policy requires no sqllens.ai sign-in. See <a href="modules/cloud-account.html#cca-offline">Cloud account → offline mode</a> and <a href="connect-db.html">Connect database</a> for TLS and SSH tunnels.</p>
+
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="get-started.html">Get started</a></li>
+          <li><a href="connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="js/docs.js"></script>
+</body>
+</html>

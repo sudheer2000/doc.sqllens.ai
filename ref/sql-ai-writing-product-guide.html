@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="sqllens.ai / SkyLineMySQL — SQL with AI: block-comment @AI prompts, CodeLens generation, and editor behavior (IntelliSense off inside comments). Companion to the unified product guide." />
+  <title>sqllens.ai — SQL with AI (product notes)</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --border: #30363d;
+      --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+    .wrap {
+      max-width: 46rem;
+      margin: 0 auto;
+      padding: 1.75rem 1.25rem 3rem;
+    }
+    h1 { font-size: 1.65rem; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+    .subtitle { color: var(--muted); margin: 0 0 1.25rem; font-size: 0.95rem; max-width: 56ch; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .banner {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.92rem;
+    }
+    .callout {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      margin: 1.25rem 0;
+    }
+    .callout strong { color: #fff; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 2rem 0 0.65rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.35rem;
+    }
+    h3 { font-size: 1rem; margin: 1.35rem 0 0.45rem; }
+    ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    code, .kbd {
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      background: #21262d;
+      padding: 0.12em 0.4em;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    pre {
+      margin: 0.75rem 0;
+      padding: 1rem 1.1rem;
+      background: #0a0d12;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #c9d1d9;
+    }
+    p { margin: 0.65rem 0; }
+    .muted { color: var(--muted); font-size: 0.88rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.75rem 0 1rem;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--card); color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>SQL with AI — product notes</h1>
+    <p class="subtitle">
+      <strong>SkylineAI / sqllens.ai</strong> turns natural language in <code>.sql</code> files into executable SQL via CodeLens, commands, and the AI Assist panel.
+      This page summarizes <strong>recent editor behavior</strong> and block-comment workflows; the canonical reference remains the unified guide.
+    </p>
+
+    <div class="banner">
+      <strong>Full documentation.</strong> Open
+      <a href="skyline-product-guide.html#ai-start">skyline-product-guide.html#ai-start</a> for the complete tree
+      (prompt shapes, CodeLens, settings, providers) and
+      <a href="skyline-product-guide.html#ai-syntax">#ai-syntax</a> for directive tables.
+    </div>
+
+    <section id="whats-new">
+      <h2>What’s new (editor)</h2>
+      <p>The following behaviors apply to the Skyline SQL completion provider (IntelliSense-style list from the extension), not necessarily to VS Code’s generic word suggestions.</p>
+      <ul>
+        <li><strong>No SQL autocomplete inside comments.</strong> Suggestions are suppressed when the caret is inside:
+          <ul>
+            <li>a block comment (<code>/* … */</code>),</li>
+            <li>a line comment after <code>--</code>,</li>
+            <li>a MySQL-style line comment after <code>#</code>.</li>
+          </ul>
+          String and backtick literals are respected so delimiters inside quotes do not flip the scanner into “comment” mode. This keeps long <code>@AI</code> prompt text and notes from being flooded with keyword/table popups.
+        </li>
+        <li><strong>Optimizer webview Monaco editor.</strong> The same rule is applied to the embedded SQL editor in the Query Optimizer workbench, so behavior matches the main <code>.sql</code> editor for that surface.</li>
+      </ul>
+      <p class="muted">Implementation: <code>src/provider/parser/sqlBlockCommentAtPosition.ts</code> (<code>isPositionInsideSqlComment</code>),
+        <code>src/provider/complete/completionProvider.ts</code>, and <code>src/provider/queryOptimizerWorkbench.ts</code> (Monaco provider).</p>
+    </section>
+
+    <section id="block-ai">
+      <h2>Block-comment <code>@AI</code> (quoted prompt + generated SQL)</h2>
+      <p>
+        You can keep the natural-language request inside a SQL block comment with a quoted <strong><code>@AI</code></strong> directive.
+        Generated SQL is placed <strong>after</strong> the closing <code>*/</code>, so the prompt stays separate from executable code.
+        Expanding a trailing <code>@ai</code> (or a line that is only <code>@</code>) can wrap your text in this form automatically.
+      </p>
+      <pre><code>/* @AI "
+List active employees in Engineering hired after 2023-01-01.
+" */
+SELECT e.emp_no, e.first_name, e.last_name
+FROM employees e
+JOIN dept_emp de ON de.emp_no = e.emp_no AND de.to_date = '9999-01-01'
+JOIN departments d ON d.dept_no = de.dept_no
+WHERE d.dept_name = 'Engineering' AND e.hire_date &gt; '2023-01-01';</code></pre>
+      <ul>
+        <li><strong>Regenerate.</strong> Editing the text between the quotes and using Generate again updates the SQL span tied to that block (prompt ↔ query binding is tracked for the pair).</li>
+        <li><strong>Placeholder line.</strong> A faint in-editor placeholder can appear for empty directive text until you type a real prompt (stripped before the model sees it).</li>
+      </ul>
+      <p class="muted">Reference: <code>src/provider/parser/sqlBlockAnalyzer.ts</code>, <code>src/provider/parser/aiSqlPromptQueryBinding.ts</code>, <code>src/service/ai/aiCommands.ts</code>.</p>
+    </section>
+
+    <section id="pairing">
+      <h2>Prompt ↔ SQL pairing (high level)</h2>
+      <p>
+        For block-comment directives, the extension resolves which <strong>generated SQL range</strong> belongs to which prompt
+        (including SQL-only output after <code>*/</code> and legacy prompt-header styles). That keeps Regenerate / replace ranges stable while you edit multi-statement scripts.
+      </p>
+      <p class="muted">Step-by-step algorithm: see the module doc at <code>src/provider/parser/aiSqlPromptQueryBinding.ts</code>.</p>
+    </section>
+
+    <section id="compare-autocomplete">
+      <h2>SQL autocomplete vs SQL with AI</h2>
+      <table>
+        <thead>
+          <tr><th>Capability</th><th>SQL autocomplete</th><th>SQL with AI</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Inside <code>/* */</code>, <code>--</code>, <code>#</code></td>
+            <td>Skyline completions off (see above).</td>
+            <td>Prompt text in comments is normal; use CodeLens / commands on the directive or prompt line.</td>
+          </tr>
+          <tr>
+            <td>Schema truth</td>
+            <td>Lists tables/columns from connection metadata.</td>
+            <td>Model suggests SQL; optional schema context in settings improves naming.</td>
+          </tr>
+          <tr>
+            <td>Docs</td>
+            <td><a href="skyline-product-guide.html#auto-start">#auto-start</a></td>
+            <td><a href="skyline-product-guide.html#ai-start">#ai-start</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="settings">
+      <h2>Settings &amp; commands</h2>
+      <p>
+        Enable AI, pick a provider, and tune schema context under <code>skyline-mysql.ai.*</code>.
+        From the Command Palette, use SkyLine / MySQL AI commands (e.g. <code>mysql.ai.generateSql</code>, <code>mysql.ai.openAiPanel</code>).
+      </p>
+      <p class="muted">Details: <a href="skyline-product-guide.html#ai-settings">skyline-product-guide.html#ai-settings</a> and <a href="skyline-product-guide.html#ai-codelens">#ai-codelens</a>.</p>
+    </section>
+  </div>
+</body>
+</html>

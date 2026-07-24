@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Query Optimizer (QO) · SQLLens.AI Docs</title>
+<meta name="description" content="SQLLens.AI Query Optimizer: Visual Explain, index DDL, query rewrites, and engine-specific guidance for MySQL, PostgreSQL, and SQLite." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>Query Optimizer</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Pillar</div>
+      <h1>Query Optimizer (QO)</h1>
+      <p class="lede">Turn execution plans into actionable fixes: Visual Explain, ranked index DDL, Index Strategy Studio with AI Advisor and 3 AI compare (LLMs), query rewrite suggestions (MySQL), and plan issues for PostgreSQL and SQLite — all in one workbench tied to your active connection.</p>
+    </header>
+
+<h2 id="qo-overview">Overview</h2>
+<p>The Query Optimizer is a dedicated panel that opens beside your SQL editor. It analyzes the statement under your caret, scores it (0–100), and surfaces:</p>
+<ul>
+<li><strong>Execution plan</strong> — table, tree, visual, or JSON views depending on engine.</li>
+<li><strong>Index recommendations</strong> — CREATE INDEX scripts with Index Strategy Studio: Index Engine, AI Advisor (Auto), and on MySQL/MariaDB <strong>3 AI compare (LLMs)</strong> for multi-model consensus.</li>
+<li><strong>Query rewrites</strong> — automatic SQL transformations (MySQL/MariaDB) plus paired rewrites when a hash or FULLTEXT index is suggested.</li>
+<li><strong>Plan issues &amp; tips</strong> — structural problems (functions on columns, leading wildcards, weak joins, …) and engine-specific guidance.</li>
+</ul>
+<p>SQLLens.AI opens the correct workbench for your connection: <strong>Query Optimizer</strong> (MySQL/MariaDB), <strong>PostgreSQL Query Optimizer</strong>, or <strong>SQLite Query Optimizer</strong>.</p>
+<div class="callout note"><div class="label">Sign-in</div><p>Opening the optimizer requires a sqllens.ai Cloud session (entitlement <strong>qo</strong> on paid tiers). Local connections still work once signed in.</p></div>
+
+<h2 id="qo-open">How to open the workbench</h2>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/qo-codelens-optimize.png" width="720" alt="SQL editor CodeLens row: Run SQL, Switch Database, connection badge, Optimize, Beautify, Save as Favorite." loading="lazy" decoding="async" />
+<figcaption class="caption">Place the caret inside a statement and use <strong>⚡ Optimize</strong> on the CodeLens row (or the editor right‑click menu).</figcaption>
+</figure>
+<ul>
+<li><strong>CodeLens</strong> — <strong>⚡ Optimize</strong> above the statement (requires SQL language mode and an active database).</li>
+<li><strong>Command Palette</strong> — <em>Optimize Query</em> / <em>SQL: Visual Explain</em> (wording may vary by keymap).</li>
+<li><strong>Editor context menu</strong> — <em>Optimize Query (Visual Explain)</em>.</li>
+<li><strong>Slow Query Log Analyzer</strong> — open a row to analyze that statement in context.</li>
+</ul>
+<p>Before optimizing, confirm the sidebar <strong>Active</strong> database matches the SQL tab (same rules as Run SQL).</p>
+
+<h2 id="qo-workbench-layout">Workbench layout</h2>
+<p>All engines share the same shell:</p>
+<table>
+<thead><tr><th>Area</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><strong>Header</strong></td><td>Connection name, database/schema selectors (MySQL database dropdown; PostgreSQL catalog + schema), host badge, score/grade, <strong>🔄 Re-analyze</strong>.</td></tr>
+<tr><td><strong>Query editor</strong></td><td>Editable Monaco SQL pane — change the query and re-run analysis without closing the panel.</td></tr>
+<tr><td><strong>Optimizer query</strong> (MySQL only)</td><td>Read-only pane showing the SQL MySQL’s optimizer actually planned (from <code>EXPLAIN FORMAT=JSON</code> or warnings when available).</td></tr>
+<tr><td><strong>Toolbar strip</strong></td><td>Primary actions: Analyze, Explain, Visual explain, Rewrites, Format, Clear, Trace, Copy Index DDL, Create Index.</td></tr>
+<tr><td><strong>Detail panel</strong></td><td>Recommendations, EXPLAIN output, trace log, or create-index modals — controlled by the toolbar.</td></tr>
+<tr><td><strong>Progress bar</strong></td><td>Bottom strip during analysis (plan fetch → recommendations → rewrites).</td></tr>
+</tbody>
+</table>
+
+<h2 id="qo-toolbar">Toolbar actions (what each button does)</h2>
+<table>
+<thead><tr><th>Button</th><th>What you see</th><th>MySQL</th><th>PostgreSQL</th><th>SQLite</th></tr></thead>
+<tbody>
+<tr><td><strong>Analyze</strong></td><td>Default view: recommended indexes + rewrite/tips or plan issues</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td><strong>Explain</strong></td><td>Raw plan — table (MySQL/SQLite) or tree/visual/JSON (PostgreSQL)</td><td>Table</td><td>Tree default</td><td>Table</td></tr>
+<tr><td><strong>Visual explain</strong></td><td>Graphical plan tree with cost highlights</td><td>✓</td><td>— (use Explain → Visual tab)</td><td>— (use Explain → Tree)</td></tr>
+<tr><td><strong>Rewrites / Tips</strong></td><td>Focus on query rewrite cards + optimization tips</td><td>✓</td><td>—</td><td>—</td></tr>
+<tr><td><strong>Format</strong></td><td>Beautify SQL in the editor pane</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td><strong>Clear</strong></td><td>Clear editor (and optimizer query pane on MySQL)</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td><strong>Trace</strong></td><td>Human-readable index/optimizer algorithm log</td><td>✓</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Copy Index DDL</strong></td><td>Copy all actionable <code>CREATE INDEX</code> statements</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td><strong>Create Index</strong></td><td>Open modal to run DDL (optionally validate with timed before/after)</td><td>✓</td><td>✓</td><td>✓</td></tr>
+</tbody>
+</table>
+
+<h2 id="qo-analyze-panel">Analyze panel (default)</h2>
+<h3 id="qo-analyze-indexes">Recommended indexes</h3>
+<p>Shown at the top of Analyze for every engine. Each row includes:</p>
+<ul>
+<li>Target table and column(s), index type (BTREE, FULLTEXT, … where relevant).</li>
+<li>Reason text and estimated improvement.</li>
+<li><strong>Create</strong> per row, or bulk <strong>Create Index</strong> from the toolbar.</li>
+<li><strong>Primary vs optional</strong> — optional rows (e.g. FULLTEXT with leading-wildcard LIKE) are marked when the index only helps after a query rewrite.</li>
+</ul>
+<p>Rows that match an existing index (exact or prefix) are hidden from actionable lists — the trace explains “already covered.”</p>
+
+<h2 id="qo-index-strategy-studio">Index Strategy Studio (MySQL / MariaDB / PostgreSQL)</h2>
+<p>On MySQL, MariaDB, and PostgreSQL, the Analyze panel’s recommended-indexes area is the <strong>Index Strategy Studio</strong> — a tabbed canvas that separates rule-based suggestions from AI advice. SQLite shows the internal list only (no AI tabs).</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/qo-index-strategy-studio.svg" width="720" height="420" alt="Index Strategy Studio with Index Engine, AI Advisor, and 3 AI compare tabs and ranked index cards." loading="lazy" decoding="async" />
+<figcaption class="caption">Index Strategy Studio — switch between <strong>Index Engine</strong>, <strong>AI Advisor</strong>, and (MySQL/MariaDB) <strong>3 AI compare (LLMs)</strong>.</figcaption>
+</figure>
+<table>
+<thead><tr><th>Tab</th><th>What it shows</th><th>When to use</th></tr></thead>
+<tbody>
+<tr><td><strong>⚙ Index Engine</strong></td><td>Internal algorithm recommendations from <code>EXPLAIN</code>, schema catalog, and join-aware rules — same logic as Trace.</td><td>Default after <strong>Analyze</strong>; fastest, no LLM usage.</td></tr>
+<tr><td><strong>✨ AI Advisor</strong></td><td>One Auto-routed LLM pass for index DDL. Click <strong>▶ Run Auto</strong> to fetch suggestions; each row shows table, columns, confidence, match vs Index Engine, and DDL.</td><td>Quick second opinion with a single model choice handled by integrated routing.</td></tr>
+<tr><td><strong>🗳 3 AI compare (LLMs)</strong></td><td>Up to three slots — pick <strong>Index Engine</strong>, <strong>Auto</strong>, or a named model per slot, then <strong>▶ Run consensus</strong>. Results rank by agreement; top picks get highlighted DDL and <strong>Create Index</strong>.</td><td>MySQL/MariaDB only; requires <strong>Pro Plus</strong> plan or higher on sqllens.ai Cloud.</td></tr>
+</tbody>
+</table>
+<div class="callout note"><div class="label">Existing indexes</div><p>Recommendations that exactly match an index already on the server are moved to <strong>Using Existing Indexes (already covered)</strong> on the Index Engine tab — they are not offered as new DDL. AI and consensus runs use the same catalog context; always re-run <strong>Analyze</strong> after creating indexes.</p></div>
+
+<h3 id="qo-ai-advisor">AI Advisor tab</h3>
+<p>Open the <strong>✨ AI Advisor</strong> tab inside Index Strategy Studio after running <strong>Analyze</strong> (so Index Engine context and schema metadata are loaded).</p>
+<ol>
+<li>Click <strong>▶ Run Auto</strong> — one LLM request returns index-only DDL suggestions.</li>
+<li>Review each card: target table, column list, confidence %, whether it <strong>matches Index Engine</strong>, and the proposed <code>CREATE INDEX</code> statement.</li>
+<li>Use per-row actions or the shared <strong>Create Index</strong> flow from the toolbar when you are ready to apply DDL.</li>
+</ol>
+<p>Notes on AI Advisor cards are kept short (about one line) so you can scan quickly. For a deeper rationale, open <strong>Trace</strong> on the Index Engine tab or compare multiple models on the compare tab.</p>
+<p>Requires sqllens.ai sign-in and an AI provider configured under Settings → AI. See <a href="ai-llm-integration.html">LLMs &amp; AI</a>.</p>
+
+<h3 id="qo-ai-compare" data-engines="mysql mariadb">3 AI compare (LLMs)</h3>
+<p>Available on <strong>MySQL and MariaDB</strong> workbenches (not PostgreSQL or SQLite). Included on <strong>Pro Plus</strong> and higher cloud plans; Free and Pro tiers still have Index Engine and AI Advisor (Auto).</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/qo-ai-compare-llms.svg" width="720" height="440" alt="Three LLM model slots, Run consensus button, status bar, and ranked unanimous recommendation card." loading="lazy" decoding="async" />
+<figcaption class="caption"><strong>3 AI compare (LLMs)</strong> — three slots, parallel run, status bar, then ranked cards with agreement chips.</figcaption>
+</figure>
+<h4 id="qo-ai-compare-setup">Setup and run</h4>
+<ol>
+<li>Run <strong>Analyze</strong> first so Index Engine recommendations are available as a baseline.</li>
+<li>Open the <strong>🗳 3 AI compare (LLMs)</strong> tab.</li>
+<li>For each of up to three slots, choose <strong>— Select model —</strong>, <strong>Index Engine</strong>, <strong>Auto</strong>, or a named model from the dropdown. You can fill one, two, or all three slots.</li>
+<li>Click <strong>▶ Run consensus</strong>. All selected sources run <strong>in parallel</strong>; a status bar shows progress until every source responds.</li>
+<li>Results appear once — changing a slot clears the previous run until you click <strong>Run consensus</strong> again.</li>
+</ol>
+<h4 id="qo-ai-compare-results">Reading results</h4>
+<p>Recommendations are grouped into vertical ranked cards (not a wide matrix):</p>
+<ul>
+<li><strong>Top picks</strong> — unanimous or strong consensus groups first, with animated <strong>DDL Index</strong> highlight and a right-aligned <strong>Create Index</strong> button.</li>
+<li><strong>Agreement chips</strong> — <em>Same</em> (matches Index Engine), <em>Partial</em> (some columns agree), <em>Unique</em> (one LLM only), <em>Index Engine only</em> (no LLM matched).</li>
+<li><strong>Summary line</strong> — counts unanimous / partial / unique groups plus source count, total recommendations, and max latency.</li>
+<li><strong>All providers</strong> — footer section lists full detail per source (Index Engine + each model that ran).</li>
+</ul>
+<p>Identical index DDL from different sources is deduplicated into one ranked group. LLM consensus groups rank above engine-only suggestions when scores tie.</p>
+<h4 id="qo-ai-compare-tips">Tips</h4>
+<ul>
+<li>Use at least <strong>Index Engine</strong> in one slot so you can see match/mismatch against the internal algorithm.</li>
+<li>Scroll position is preserved when you change model dropdowns — you stay where you were in the list.</li>
+<li>Query rewrites suggested by models (non-DDL) appear in a separate section with <strong>Apply rewrite</strong> when returned.</li>
+<li>Validate every suggestion with <strong>Explain</strong> and representative data before production DDL.</li>
+</ul>
+
+<h3 id="qo-analyze-mysql-extra">MySQL/MariaDB — rewrites &amp; tips on Analyze</h3>
+<p>Below indexes, Analyze also shows <strong>✏️ Rewrite Recommendations / Tips</strong> when the analyzer finds:</p>
+<ul>
+<li>Automatic <strong>query rewrites</strong> (see <a href="#qo-rewrites-mysql">full rewrite catalog</a>).</li>
+<li><strong>General tips</strong> from the recommendation engine (functions in WHERE, SELECT *, weak joins, …).</li>
+</ul>
+<p>Each rewrite card offers <strong>Preview</strong>, <strong>Apply</strong> (replaces text in the workbench editor), and confidence/impact badges.</p>
+
+<h3 id="qo-analyze-pg-extra">PostgreSQL — Issues &amp; Impact</h3>
+<p>Instead of SQL rewrite cards, Analyze shows a table of plan issues with severity, suggestion, and impact. A summary strip includes plan cost, estimated rows, sequential vs index scans, and whether the plan used <strong>EXPLAIN ANALYZE</strong> (actual rows) or estimates only.</p>
+
+<h3 id="qo-analyze-sqlite-extra">SQLite — Performance at a glance</h3>
+<p>Analyze adds a grade headline, chips (full scans, index lookups, automatic indexes, temp sorts), access-path before/after cards, and quick wins (create suggested indexes, run <code>ANALYZE;</code>).</p>
+
+<h2 id="qo-explain-panel">Explain panel &amp; sub-views</h2>
+<p>Click <strong>Explain</strong> to focus on the execution plan. MySQL and SQLite use a compact table; PostgreSQL opens a tabbed EXPLAIN section.</p>
+
+<h3 id="qo-explain-mysql">MySQL / MariaDB</h3>
+<ul>
+<li><strong>Table</strong> — classic EXPLAIN columns (<code>type</code>, <code>key</code>, <code>rows</code>, <code>Extra</code>). Look for <code>type: ALL</code> or large <code>rows</code> on driving tables.</li>
+<li><strong>Visual</strong> — nested plan diagram (same data, easier to present).</li>
+<li><strong>Tree</strong> — hierarchical text tree.</li>
+<li><strong>JSON</strong> — raw <code>EXPLAIN FORMAT=JSON</code> for sharing.</li>
+</ul>
+
+<h3 id="qo-explain-postgres">PostgreSQL</h3>
+<ul>
+<li><strong>Tree</strong> — text plan with seq scan / index scan legend.</li>
+<li><strong>Visual</strong> — graphical plan (cost and row width on nodes).</li>
+<li><strong>JSON</strong> — <code>EXPLAIN (FORMAT JSON)</code> output.</li>
+<li>When opened with <strong>analyze</strong> from certain entry points, the plan includes actual row counts and timing — prefer that for production-like validation.</li>
+</ul>
+
+<h3 id="qo-explain-sqlite">SQLite</h3>
+<ul>
+<li><strong>Table</strong> — <code>EXPLAIN QUERY PLAN</code> rows with plain-language “what it means” column.</li>
+<li><strong>Tree</strong> — indented operation tree (SCAN vs SEARCH vs TEMP_BTREE).</li>
+</ul>
+
+<h2 id="qo-visual-explain">Visual Explain (MySQL entry)</h2>
+<p>From the editor, Visual Explain can open directly; inside the workbench, use <strong>Visual explain</strong> on the toolbar (MySQL only — PostgreSQL visual lives under Explain tabs).</p>
+<figure class="doc-media doc-media--gif">
+<img src="../images/query-optimizer-visual-explain-demo.gif" width="720" alt="Animated demo: Visual Explain plan tree with cost highlights and step detail." loading="lazy" decoding="async" />
+<figcaption class="caption">Visual Explain — plan tree, cost highlights, and step detail.</figcaption>
+</figure>
+
+<h2 id="qo-trace">Trace (algorithm log)</h2>
+<p>Available on <strong>MySQL</strong> and <strong>PostgreSQL</strong>. Click <strong>Trace</strong> to see how the product parsed your SQL, scored EXPLAIN rows, and chose index recommendations. Sections typically include:</p>
+<ol>
+<li>User query vs optimizer query (MySQL).</li>
+<li>EXPLAIN rows / plan issues.</li>
+<li>Recommender trace (clause detection, join groups, eligible columns).</li>
+<li>Final index list and workbench pipeline notes.</li>
+</ol>
+<p>Use <strong>📋 Copy Trace</strong> when sharing with support or filing an issue.</p>
+
+<h2 id="qo-indexes">Index recommendations &amp; Create Index</h2>
+<figure class="doc-media doc-media--gif">
+<img src="../images/query-optimizer-workbench-demo.gif" width="720" alt="Animated demo: Query Optimizer workbench with index suggestions and create-index flow." loading="lazy" decoding="async" />
+<figcaption class="caption">Recommended indexes, copy DDL, and create-index validation.</figcaption>
+</figure>
+<h3 id="qo-index-actions">Actions</h3>
+<ul>
+<li><strong>Copy Index DDL</strong> — all actionable statements to the clipboard.</li>
+<li><strong>Create Index</strong> — modal with per-index checkboxes, editable DDL, thread count (MySQL bulk), optional <strong>validate performance</strong> (runs before/after timed execution where supported).</li>
+<li><strong>Per-row Create</strong> — run a single recommendation without the bulk modal.</li>
+</ul>
+<h3 id="qo-index-types">Index types the recommender may suggest</h3>
+<table>
+<thead><tr><th>Type</th><th>When</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><strong>BTREE</strong> (default)</td><td>Equality/range filters, JOIN keys, ORDER BY</td><td>Composite indexes follow column order in WHERE/JOIN/ORDER BY.</td></tr>
+<tr><td><strong>FULLTEXT</strong> (MySQL)</td><td>Leading-wildcard <code>LIKE '%term%'</code> on text columns</td><td>Marked optional — requires rewrite to <code>MATCH(col) AGAINST('term')</code>; LIKE alone will not use the index.</td></tr>
+<tr><td><strong>HASH / generated hash</strong> (MySQL InnoDB)</td><td>Wide TEXT/BLOB equality filters</td><td>Often paired with a <strong>query rewrite</strong> using a stored/generated CRC32/MD5 column.</td></tr>
+<tr><td><strong>SPATIAL / VECTOR</strong></td><td>Geo or vector distance patterns</td><td>Vector indexes apply when distance is in WHERE/ORDER BY LIMIT, not only projected in SELECT.</td></tr>
+<tr><td><strong>PostgreSQL</strong></td><td>B-tree, GiST/GIN/etc. per column types and predicates</td><td>Method policy follows catalog capabilities (see trace for method choice).</td></tr>
+<tr><td><strong>SQLite</strong></td><td>B-tree indexes on filter/join columns</td><td>Flags automatic indexes SQLite created at runtime — prefer explicit indexes you control.</td></tr>
+</tbody>
+</table>
+
+<h2 id="qo-rewrites">Query rewrite recommendations</h2>
+<p>Automated SQL rewrite cards are a <strong>MySQL/MariaDB</strong> workbench feature. PostgreSQL and SQLite focus on plan issues and index DDL instead of one-click SQL replacements.</p>
+
+<h3 id="qo-rewrites-mysql" data-engines="mysql mariadb">MySQL — automatic rewrite types</h3>
+<p>The rewriter scans your statement and may suggest the following (sorted by impact and confidence):</p>
+<table>
+<thead><tr><th>Rewrite</th><th>Typical pattern</th><th>Suggested direction</th><th>Impact</th></tr></thead>
+<tbody>
+<tr><td><strong>Function isolation</strong></td><td><code>UPPER(col) = 'X'</code>, <code>LOWER(col)</code>, <code>DATE(col)</code>, <code>YEAR/MONTH/DAY/HOUR(col)</code></td><td>Move function to the literal side or use a date/time range on the column</td><td>High</td></tr>
+<tr><td><strong>LEFT / SUBSTRING</strong></td><td><code>LEFT(col,n) = 'prefix'</code>, <code>SUBSTRING(col,1,n) = 'prefix'</code></td><td><code>col LIKE 'prefix%'</code> (escaped)</td><td>High</td></tr>
+<tr><td><strong>CONCAT on column</strong></td><td><code>CONCAT(col, …) = 'value'</code></td><td>Generated stored column + index (guidance DDL)</td><td>High</td></tr>
+<tr><td><strong>OR → UNION</strong></td><td><code>WHERE a = 1 OR b = 2</code> on different columns</td><td><code>UNION</code> of two SELECTs</td><td>Medium</td></tr>
+<tr><td><strong>IN subquery → JOIN</strong></td><td><code>WHERE col IN (SELECT … FROM t)</code></td><td><code>INNER JOIN t ON …</code></td><td>Medium</td></tr>
+<tr><td><strong>IN → EXISTS</strong></td><td><code>col IN (SELECT … WHERE …)</code></td><td><code>EXISTS (SELECT 1 …)</code></td><td>Medium</td></tr>
+<tr><td><strong>NOT IN → NOT EXISTS</strong></td><td><code>col NOT IN (SELECT …)</code></td><td><code>NOT EXISTS (…)</code> (NULL-safe)</td><td>Medium</td></tr>
+<tr><td><strong>Correlated EXISTS → JOIN</strong></td><td>Simple single-table <code>EXISTS</code></td><td><code>INNER JOIN</code> semijoin form</td><td>Medium (lower confidence)</td></tr>
+<tr><td><strong>LIMIT/OFFSET → keyset</strong></td><td><code>LIMIT n OFFSET &gt; 100</code></td><td><code>WHERE id &gt; :last_id ORDER BY id LIMIT n</code></td><td>High</td></tr>
+<tr><td><strong>DISTINCT → GROUP BY</strong></td><td><code>SELECT DISTINCT cols</code> (not DISTINCT ON)</td><td>Same columns with <code>GROUP BY</code></td><td>Low</td></tr>
+<tr><td><strong>HAVING → WHERE</strong></td><td>Non-aggregate predicates in <code>HAVING</code></td><td>Push filters to <code>WHERE</code></td><td>Medium</td></tr>
+<tr><td><strong>CASE → IF</strong></td><td>Simple two-branch <code>CASE WHEN col = v …</code></td><td><code>IF(col = v, …, …)</code></td><td>Low</td></tr>
+<tr><td><strong>UNION → UNION ALL</strong></td><td><code>UNION</code> without dedup need</td><td><code>UNION ALL</code></td><td>Medium</td></tr>
+</tbody>
+</table>
+
+<h3 id="qo-rewrites-index-linked">MySQL — index-linked query rewrites</h3>
+<p>When the index recommender proposes certain indexes, it may attach a paired rewrite:</p>
+<ul>
+<li><strong>Hash / CRC32 column</strong> — equality on long TEXT columns → rewrite uses <code>payload_crc32 = CRC32('value') AND payload = 'value'</code> (or composite hash for multi-column equality).</li>
+<li><strong>FULLTEXT</strong> — rewrite from <code>LIKE '%term%'</code> to <code>MATCH(col) AGAINST('term')</code> (in BOOLEAN or NATURAL mode as appropriate). The UI warns that adding FULLTEXT alone without this rewrite will not fix leading-wildcard LIKE.</li>
+</ul>
+<p>These appear in the same rewrite list as structural rewrites and can be applied from the workbench editor.</p>
+
+<h3 id="qo-rewrites-tips">MySQL — general optimization tips (not always auto-rewritten)</h3>
+<p>The recommendation engine adds tips when it detects patterns such as:</p>
+<ul>
+<li>Functions or implicit conversions on indexed columns (filters and joins).</li>
+<li>Leading wildcard LIKE, <code>SELECT *</code>, <code>ORDER BY RAND()</code>, large <code>LIMIT OFFSET</code>.</li>
+<li>Weak or missing JOIN conditions, OR in joins, too many tables without joins.</li>
+<li>Non-sargable predicates, partition pruning misses, covering-index opportunities.</li>
+<li>Subquery / EXISTS / IN anti-join patterns, redundant DISTINCT, temp table + filesort from EXPLAIN extras.</li>
+</ul>
+<p>Tips include severity, suggested fix text, and sometimes a sample <code>sqlFix</code> snippet — review before running on production.</p>
+
+<h3 id="qo-rewrites-pg">PostgreSQL — what we handle instead of rewrite cards</h3>
+<ul>
+<li><strong>Issues &amp; Impact</strong> table from plan analysis (seq scans, high cost nodes, sort/hash spills, …).</li>
+<li><strong>Index recommendations</strong> with PostgreSQL-appropriate access methods.</li>
+<li><strong>Trace</strong> explaining plan nodes and recommendation rationale.</li>
+<li>No automated one-click SQL rewrite list — apply fixes manually from suggestions and index DDL.</li>
+</ul>
+
+<h3 id="qo-rewrites-sqlite">SQLite — what we handle instead of rewrite cards</h3>
+<ul>
+<li><strong>EXPLAIN QUERY PLAN</strong> interpretation (SCAN vs SEARCH, automatic indexes, TEMP_BTREE).</li>
+<li><strong>Performance overview</strong> and issue list with plain-language headlines.</li>
+<li><strong>Index CREATE</strong> recommendations and in-workbench apply.</li>
+<li>No Trace tab, no Rewrites/Tips toolbar button, no profiler-based validation (wall-clock timing may still be used for create-index validation).</li>
+</ul>
+
+<h2 id="qo-engine-compare">Engine comparison (at a glance)</h2>
+<table>
+<thead><tr><th>Feature</th><th>MySQL / MariaDB</th><th>PostgreSQL</th><th>SQLite</th></tr></thead>
+<tbody>
+<tr><td>Panel title</td><td>Query Optimizer</td><td>PostgreSQL Query Optimizer</td><td>SQLite Query Optimizer</td></tr>
+<tr><td>Dual optimizer-query pane</td><td>Yes</td><td>No</td><td>No</td></tr>
+<tr><td>Visual plan graph</td><td>Yes (toolbar)</td><td>Explain → Visual tab</td><td>Explain → Tree</td></tr>
+<tr><td>Automatic SQL rewrites</td><td>Yes</td><td>No</td><td>No</td></tr>
+<tr><td>Algorithm trace</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+<tr><td>Create index in UI</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Profiler validate on create</td><td>Yes</td><td>Yes (EXPLAIN ANALYZE path)</td><td>Wall-clock only</td></tr>
+<tr><td>Batch optimize (from QLA)</td><td>Yes</td><td>Varies by entry</td><td>Varies by entry</td></tr>
+</tbody>
+</table>
+
+<h2 id="qo-when-to-use">When to optimize</h2>
+<ul>
+<li>Query is slow on representative data volume.</li>
+<li>EXPLAIN shows full scans, large row estimates, or “Using filesort / temporary”.</li>
+<li>Before shipping reporting queries or new API endpoints.</li>
+<li>After importing the <a href="slow-query-analyzer.html">Slow Query Log Analyzer</a> results.</li>
+</ul>
+
+<h2 id="qo-index-batch">Batch optimize (from slow query log)</h2>
+<p>Select multiple entries in the Query Log Optimizer and run batch analysis to collect overlapping index suggestions across statements — useful when several queries share the same missing index.</p>
+
+<h2 id="qo-settings">Optimizer settings</h2>
+<p>Common keys (VS Code Settings → search <code>queryOptimizer</code>):</p>
+<ul>
+<li><code>skyline-mysql.queryOptimizer.disableVisualExplain</code> — skip visual plan rendering.</li>
+<li><code>skyline-mysql.queryOptimizerVerboseIndexLog</code> — extra index recommender logging (Debug Console when debugging).</li>
+<li><code>skyline-mysql.joinCompletions.showDeptEmpSubqueryBridge</code> — unrelated to QO panel but affects join/index demos on sample DBs.</li>
+</ul>
+<p>Full list: <a href="../settings.html#settings-optimizer">Settings → Optimizer</a>.</p>
+
+<h2 id="qo-tips">Tips &amp; limits</h2>
+<ul>
+<li>Re-run <strong>Analyze</strong> after creating indexes — confirm the plan uses the new keys.</li>
+<li>Statistics matter: run <code>ANALYZE TABLE</code> (MySQL), <code>ANALYZE</code> (PostgreSQL/SQLite) on large tables after bulk loads.</li>
+<li>Rewrites are suggestions — verify semantics (NULL handling, duplicates with UNION ALL, timezone boundaries on DATE rewrites).</li>
+<li>Test destructive or locking DDL on a staging copy first; use the workbench’s impact hints when shown.</li>
+<li>Use <strong>Index Engine</strong> for deterministic rules; <strong>AI Advisor</strong> for a quick Auto pass; <strong>3 AI compare (LLMs)</strong> when you want ranked agreement across models (MySQL/MariaDB, Pro Plus+).</li>
+</ul>
+
+<h2 id="qo-related">Related docs</h2>
+<ul>
+<li><a href="sql-workspace.html#ws-run-explain">SQL workspace — Run, EXPLAIN &amp; Optimize</a></li>
+<li><a href="slow-query-analyzer.html">Slow Query Log Analyzer</a></li>
+<li><a href="sql-autocomplete.html">SQL autocomplete</a></li>
+<li><a href="performance-monitor.html">Performance Monitor</a></li>
+<li><a href="ai-llm-integration.html">LLMs &amp; AI</a> — provider setup for AI Advisor and compare</li>
+</ul>
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Slow Query Log Analyzer (QLA) · SQLLens.AI Docs</title>
+<meta name="description" content="SQLLens.AI Slow Query Log Analyzer (QLA): load query digest or slow logs, rank fingerprints, Optimize All, Create Indexes + Validate, and export DDL — MySQL, MariaDB, and PostgreSQL." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>Slow Query Log Analyzer</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Pillar</div>
+      <h1>Slow Query Log Analyzer (QLA)</h1>
+      <p class="lede">Aggregate slow-query workload from digest tables, slow logs, or uploaded files — rank fingerprints by impact, batch-analyze with Optimize All, apply index DDL with optional before/after validation, and jump into the single-query <a href="query-optimizer.html#qo-overview">Query Optimizer</a>.</p>
+    </header>
+
+<h2 id="qla-overview">Overview</h2>
+<p>The <strong>Slow Query Log Analyzer</strong> (MySQL/MariaDB) and <strong>Query Log Optimizer</strong> (PostgreSQL) share one panel. They:</p>
+<ul>
+<li><strong>Load workload</strong> from performance digest (<code>events_statements_summary_by_digest</code> / <code>pg_stat_statements</code>), server slow-log tables, auto-detected log files, or drag-and-drop uploads.</li>
+<li><strong>Normalize</strong> statements (literals → placeholders) into fingerprints and score them by response time, call count, rows examined, and usage share.</li>
+<li><strong>Prioritize</strong> with impact rank, bubble timeline, and usage breakdowns by table, database, and user.</li>
+<li><strong>Tune in bulk</strong> — <em>Optimize All Queries</em> fills index recommendations; <em>Create Indexes + Validate</em> applies DDL and compares EXPLAIN before/after.</li>
+<li><strong>Drill down</strong> — per-row EXPLAIN, single-query Optimize, copy SQL, or export index scripts.</li>
+</ul>
+<figure class="doc-media doc-media--video">
+<img src="../images/slow-query-analyzer-demo.gif" width="720" alt="Animated demo: Slow Query Log Analyzer — load digest, review fingerprints, Optimize All, Create Indexes + Validate, and review cumulative savings charts." loading="lazy" decoding="async" />
+<figcaption class="caption">End-to-end flow: load workload → review ranked fingerprints → Optimize All → Create Indexes + Validate → visual summary (rows saved, I/O weight, estimated response-time benefit).</figcaption>
+</figure>
+<div class="callout note"><div class="label">Naming</div><p>MySQL/MariaDB connections show <strong>Slow Query Log Analyzer</strong>. PostgreSQL connections show <strong>Query Log Optimizer</strong> — same panel, engine-specific data sources.</p></div>
+
+<h2 id="qla-open">How to open</h2>
+<ul>
+<li><strong>Database tree</strong> — right-click a connection or database → <strong>⚡ Query Log Optimizer</strong> (PostgreSQL) or the connection’s slow-query command (MySQL/MariaDB).</li>
+<li><strong>Command Palette</strong> — search for slow query / query log optimizer commands tied to your active connection.</li>
+<li><strong>Performance Monitor</strong> — open the Query Log Optimizer from the debugger workbench when monitoring a session.</li>
+</ul>
+<p>The panel opens scoped to the tree node you picked. Confirm the sidebar <strong>Active</strong> database matches the workload you intend to tune.</p>
+
+<h2 id="qla-home">Home screen — choose a data source</h2>
+<p>Before any grid appears, the home screen offers one or more load paths. Filters on each card control time window, row limit, and sort order.</p>
+
+<h3 id="qla-home-mysql">MySQL / MariaDB sources</h3>
+<table>
+<thead><tr><th>Card / control</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><strong>Query Digest</strong> → <em>Analyze Query Digest</em></td><td>Reads <code>performance_schema.events_statements_summary_by_digest</code>. No slow log setup required. Filters: <strong>Last Seen Within</strong>, <strong>Latest Rows Limit</strong>, <strong>Sort by</strong> (total time, avg time, call count).</td></tr>
+<tr><td><strong>mysql.slow_log</strong> → <em>Analyze mysql.slow_log</em></td><td>Reads the slow-log table when <code>slow_query_log=ON</code> and <code>log_output=TABLE</code>. Same time/limit/sort filters as the table card. Disabled until the server reports the table is available.</td></tr>
+<tr><td><strong>Upload File</strong> / drop zone</td><td>Parse a local slow log (<code>.log</code>, <code>.txt</code>, <code>.csv</code>). Drag-and-drop or click to browse.</td></tr>
+<tr><td><strong>Enable Slow Query Log</strong></td><td>Appears when auto-detect finds logging off. Opens a modal with SQL to enable logging (requires elevated privileges).</td></tr>
+<tr><td><strong>Load from MySQL Slow Query Log</strong></td><td>After auto-detect finds the server log path: loads the file directly (or last N lines when the file exceeds 100 MB).</td></tr>
+<tr><td><strong>Read last … lines</strong></td><td>Tail input (default 10,000 lines) for very large on-server log files.</td></tr>
+</tbody>
+</table>
+
+<h3 id="qla-home-pg">PostgreSQL sources</h3>
+<table>
+<thead><tr><th>Card / control</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><strong>pg_stat_statements</strong> → <em>Analyze pg_stat_statements</em></td><td>Recommended. Cluster-wide stats since last reset. Requires extension + <code>shared_preload_libraries</code>. Badge shows <em>Ready</em> or <em>Not installed</em>.</td></tr>
+<tr><td><strong>Connect through</strong></td><td>Database where <code>CREATE EXTENSION pg_stat_statements</code> was run (extension catalog location).</td></tr>
+<tr><td><strong>Load workload from</strong></td><td>Limit initial load to one database, or <em>All databases</em> for cluster-wide view.</td></tr>
+<tr><td><strong>Min Avg Time (ms)</strong></td><td>Filter out fast statements (<code>0</code> = include all).</td></tr>
+<tr><td><strong>Latest Rows Limit</strong> / <strong>Sort by</strong></td><td>Cap rows returned; sort by total time, avg time, or call count.</td></tr>
+<tr><td><strong>Upload PG Log File</strong> / drop zone</td><td>Parse server log output from <code>log_min_duration_statement</code>. Auto-detect for local servers when logging collector is on.</td></tr>
+<tr><td><strong>Enable PG Slow Logging</strong></td><td>Guidance when statement logging is not configured.</td></tr>
+</tbody>
+</table>
+
+<h2 id="qla-toolbar-loaded">Toolbar after load</h2>
+<p>Once a report is loaded, the top toolbar switches from load buttons to filtering plus reload shortcuts:</p>
+<table>
+<thead><tr><th>Control</th><th>MySQL / MariaDB</th><th>PostgreSQL</th></tr></thead>
+<tbody>
+<tr><td><strong>Load From Query Digest</strong></td><td>Reload from performance_schema digest</td><td><strong>Load From pg_stat_statements</strong></td></tr>
+<tr><td><strong>Load From mysql.slow_log</strong></td><td>Reload from slow-log table</td><td>—</td></tr>
+<tr><td><strong>Upload …</strong></td><td>Upload Slow Log File</td><td>Upload PG Server Log</td></tr>
+<tr><td><strong>Filter</strong></td><td colspan="2">Text filter across query text, database, table, fingerprint</td></tr>
+<tr><td><strong>Tune DB</strong> (PostgreSQL only)</td><td colspan="2">Dropdown to scope grid, Optimize All, and Create Indexes to one database</td></tr>
+</tbody>
+</table>
+
+<h2 id="qla-summary">Summary stat cards</h2>
+<p>Six tiles above the tabs summarize the loaded report:</p>
+<table>
+<thead><tr><th>Card</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><strong>Total Queries</strong></td><td>Raw execution count in the loaded window</td></tr>
+<tr><td><strong>Fingerprints</strong></td><td>Distinct normalized query patterns</td></tr>
+<tr><td><strong>Total Response Time</strong></td><td>Sum of execution time across the workload</td></tr>
+<tr><td><strong>Avg Query Score</strong></td><td>Mean optimization score (0–100) across fingerprints</td></tr>
+<tr><td><strong>Indexes</strong></td><td>Count of index recommendations after Optimize All (or placeholder before run)</td></tr>
+<tr><td><strong>Full Table Scan / Improvement</strong></td><td>Full-scan query count and expected improvement summary after batch optimize</td></tr>
+</tbody>
+</table>
+
+<h2 id="qla-tabs">Main tabs</h2>
+<table>
+<thead><tr><th>Tab</th><th>Contents</th></tr></thead>
+<tbody>
+<tr><td><strong>Query Fingerprints</strong></td><td>Primary tuning grid — ranked statements, row actions, recommended indexes. Bubble timeline chart above the table.</td></tr>
+<tr><td><strong>Table Usage</strong></td><td>Dual pie charts (top tables &amp; databases by usage %) plus a sortable <strong>Table Grid</strong> / <strong>Database Grid</strong> sub-tab.</td></tr>
+<tr><td><strong>Database Usage</strong></td><td>Same analytics as Table Usage with database-first breakdown.</td></tr>
+<tr><td><strong>User Usage</strong></td><td>Bar charts and grid: calls, usage %, response time, rows examined per database user.</td></tr>
+</tbody>
+</table>
+<p>Click any column header in a grid to sort ascending/descending. On <strong>Query Fingerprints</strong>, the <strong>#</strong> rank column is fixed by impact priority (not affected by sort order).</p>
+
+<h2 id="qla-fingerprints-grid">Query Fingerprints — columns</h2>
+<table>
+<thead><tr><th>Column</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><strong>#</strong></td><td>Impact rank among visible rows (1 = highest impact). Color-coded badge.</td></tr>
+<tr><td><strong>Impact</strong></td><td>Numeric impact score — higher means more pain in this workload.</td></tr>
+<tr><td><strong>QueryRating</strong></td><td>Star rating (1–5) plus grade chip (A–E) and optimization score /100.</td></tr>
+<tr><td><strong>Query Fingerprint</strong></td><td>Normalized template; hover for sample SQL with literals.</td></tr>
+<tr><td><strong>ResponseTime</strong></td><td>Total time for this fingerprint in the window.</td></tr>
+<tr><td><strong>PCT(%)</strong></td><td>Share of total workload time — heat bar visualization.</td></tr>
+<tr><td><strong>Calls</strong></td><td>Execution count.</td></tr>
+<tr><td><strong>AvgResponseTime</strong></td><td>Mean time per call with sparkline vs. peers.</td></tr>
+<tr><td><strong>Actions</strong></td><td>Per-row EXPLAIN, Optimize, Copy (see below).</td></tr>
+<tr><td><strong>Max</strong></td><td>Longest single execution.</td></tr>
+<tr><td><strong>Database</strong> / <strong>Table</strong></td><td>Schemas and tables referenced.</td></tr>
+<tr><td><strong>QueryScore</strong></td><td>Composite score: 40% response time + 25% usage + 25% rows examined + 10% rows-examined/sent ratio.</td></tr>
+<tr><td><strong>RowsExamined</strong> / <strong>RowsReturn</strong></td><td>Average rows scanned vs. rows returned to client.</td></tr>
+<tr><td><strong>Type</strong></td><td>Quality tag: <code>OK</code>, <code>SLOW</code>, <code>BAD</code>, or <code>BAD+SLOW</code>.</td></tr>
+<tr><td><strong>Recommended Indexes</strong></td><td>Before Optimize All: prompt button. After: summary chip + copy DDL / copy rewrite tips.</td></tr>
+</tbody>
+</table>
+
+<h2 id="qla-row-actions">Row action buttons</h2>
+<table>
+<thead><tr><th>Button</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td><strong>📋 EXPLAIN</strong></td><td>Opens Visual Explain / plan analysis for that fingerprint’s sample query in the <a href="query-optimizer.html#qo-open">Query Optimizer</a> workbench.</td></tr>
+<tr><td><strong>⚡ Optimize</strong></td><td>Full optimizer analysis (indexes, rewrites, plan issues) for one statement.</td></tr>
+<tr><td><strong>📋 Copy</strong></td><td>Copies sample SQL to the clipboard.</td></tr>
+<tr><td><strong>📋 Copy index DDL</strong> (Recommended Indexes)</td><td>Copies all CREATE INDEX statements for that row.</td></tr>
+<tr><td><strong>📝 Copy rewrite tips</strong></td><td>Copies textual rewrite guidance from recommendations.</td></tr>
+</tbody>
+</table>
+<p>Rows that cannot be optimized (e.g. missing sample SQL, unsupported statement type) show <strong>—</strong> with a tooltip explaining why. Optimizable types: <code>SELECT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>WITH</code>.</p>
+
+<h2 id="qla-action-bar">Action bar (batch operations)</h2>
+<p>Right of the main tabs:</p>
+<table>
+<thead><tr><th>Button</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><strong>⚡ Optimize all Queries</strong></td><td>Runs the Query Optimizer across top fingerprints (scope set in Optimizer Settings). Fills <strong>Recommended Indexes</strong> column and updates summary tiles. Shows progress banner with cancel.</td></tr>
+<tr><td><strong>Create Indexes + Validate</strong> ▼</td><td>Dropdown: <em>Create Indexes + Validate</em> (EXPLAIN before/after) or <em>Create Indexes</em> only. Opens full-screen Create Indexes overlay.</td></tr>
+<tr><td><strong>Export Index DDL</strong> ▼</td><td><em>Export indexes script</em> (save file) or <em>Copy indexes script</em> (clipboard). Requires Optimize All first.</td></tr>
+<tr><td><strong>🔍 Settings</strong></td><td>Opens Optimizer Settings modal (sampling + Optimize All scope).</td></tr>
+</tbody>
+</table>
+
+<h2 id="qla-bubble-chart">Bubble timeline (Query Fingerprints tab)</h2>
+<p>Above the fingerprint table, a scatter timeline plots slow executions over time:</p>
+<ul>
+<li>Bubble size reflects query duration; color matches impact rank (top 10 highlighted).</li>
+<li>Hover for timestamp, duration, fingerprint snippet, grade, and quality tag.</li>
+<li>Click a bubble to scroll and highlight the matching grid row.</li>
+<li>Toggle/zoom controls collapse or expand the chart when space is tight.</li>
+</ul>
+
+<h2 id="qla-operation-banner">Operation progress banner</h2>
+<p>During Optimize All, Create Indexes, or validation, a status banner appears below the action bar:</p>
+<ul>
+<li><strong>Status text</strong> and badge (<em>Running</em>, <em>OK</em>, <em>Warning</em>, <em>Blocked</em>).</li>
+<li><strong>Progress bar</strong> with percentage and optional ETA chip.</li>
+<li><strong>Cancel</strong> — stops the batch and kills the active server query when possible.</li>
+<li><strong>Detail chips</strong> — thread id, DB state, elapsed time during long operations.</li>
+</ul>
+
+<h2 id="qla-create-indexes">Create Indexes overlay</h2>
+<p>Full-screen flow opened from the action bar. Two phases: <strong>selection</strong> then <strong>results</strong> (after Create Indexes or Create Indexes + Validate).</p>
+
+<h3 id="qla-create-select">Selection screen controls</h3>
+<table>
+<thead><tr><th>Control</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><strong>Select all</strong> checkbox</td><td>Toggle all index recommendations.</td></tr>
+<tr><td><strong>Ignore Low impact indexes</strong></td><td>Deselects low-impact rows from the create list.</td></tr>
+<tr><td><strong>Threads</strong></td><td>Parallel CREATE INDEX workers (1, 2, 4, 8, 16). Use 1 on busy production systems.</td></tr>
+<tr><td><strong>Summary strip</strong></td><td><em>N selected · Est. total: …</em> — selected count and rough duration estimate.</td></tr>
+<tr><td>Per-row checkbox</td><td>Include/exclude individual CREATE INDEX statements.</td></tr>
+<tr><td><strong>Cancel</strong></td><td>Close overlay without creating anything.</td></tr>
+<tr><td><strong>Create Indexes</strong></td><td>Apply selected DDL without before/after EXPLAIN validation.</td></tr>
+<tr><td><strong>Create Indexes + Validate</strong></td><td>Apply DDL, then run monitored before/after EXPLAIN and timing checks (5% improvement threshold for row counts).</td></tr>
+</tbody>
+</table>
+
+<h3 id="qla-create-results">Results screen — visual summary</h3>
+<p>After validation completes, charts summarize aggregate benefit (as shown in the demo GIF):</p>
+<table>
+<thead><tr><th>Section</th><th>What it shows</th></tr></thead>
+<tbody>
+<tr><td><strong>Outcome mix</strong> (donut)</td><td>Improvement vs. no impact vs. regression vs. failed recommendations.</td></tr>
+<tr><td><strong>Cumulative I/O savings</strong> (line chart)</td><td><strong>Rows saved</strong> (blue, left Y-axis) and <strong>I/O weight saved</strong> (green, right Y-axis) — cumulative as each query is optimized. Hover points for per-query detail.</td></tr>
+<tr><td><strong>Estimated response-time benefit</strong></td><td>Large <strong>Nx</strong> ratio from weighted EXPLAIN rows before ÷ after, plus absolute row savings (e.g. 5.7M → 753K rows).</td></tr>
+<tr><td><strong>Weighted totals (all queries)</strong></td><td>Before/after bar comparison and <strong>% reduction in weighted rows</strong> (count × EXPLAIN rows, summed).</td></tr>
+<tr><td><strong>Per-index details</strong> grid</td><td>DDL, status, rows before/after, impact %, optimizer index usage, timings, errors. Scroll horizontally for all columns.</td></tr>
+</tbody>
+</table>
+
+<h3 id="qla-create-drop">Results screen — drop actions</h3>
+<table>
+<thead><tr><th>Button</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><strong>Drop unused indexes</strong></td><td>Removes indexes from this batch that validation showed the optimizer did not use.</td></tr>
+<tr><td><strong>Drop all</strong></td><td>Rolls back every index created from this recommendation set (confirmation modal).</td></tr>
+<tr><td><strong>Cancel</strong> (during drop)</td><td>Stops an in-progress drop operation.</td></tr>
+<tr><td><strong>Close</strong></td><td>Exit results view back to the analyzer grid.</td></tr>
+</tbody>
+</table>
+
+<h2 id="qla-settings">Optimizer Settings modal</h2>
+<p>Gear icon in the action bar. Two tabs — settings persist in your VS Code profile.</p>
+<table>
+<thead><tr><th>Tab / option</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><strong>Slow Query Optimizer</strong> → Collect query samples</td><td>When checked, fetches real literal values from history for better index recommendations. Uncheck to use normalized templates only.</td></tr>
+<tr><td><strong>Queries to optimize in "Optimize All"</strong></td><td>All queries · Top 5 · Top 10 · Top 25 — limits batch analysis to highest-impact fingerprints.</td></tr>
+<tr><td><strong>Skip tables with many indexes</strong></td><td>Coming soon — skip recommendations when a table already exceeds N indexes.</td></tr>
+<tr><td><strong>Query Optimizer</strong> → Collect query samples</td><td>Same sampling toggle for single-query Optimize opened from a grid row.</td></tr>
+<tr><td><strong>Save</strong> / <strong>Cancel</strong></td><td>Persist or discard changes.</td></tr>
+</tbody>
+</table>
+
+<h2 id="qla-find-logs">Auto-detect &amp; enable slow logging</h2>
+<p>QLA probes the server for log configuration:</p>
+<ul>
+<li><strong>MySQL/MariaDB</strong> — reads <code>slow_query_log</code>, <code>slow_query_log_file</code>, and whether <code>mysql.slow_log</code> is writable. Offers enable SQL when logging is off.</li>
+<li><strong>PostgreSQL</strong> — checks <code>logging_collector</code>, <code>log_min_duration_statement</code>, and <code>pg_stat_statements</code> availability.</li>
+</ul>
+<div class="callout warn"><div class="label">Production caution</div><p>Enabling verbose statement logging adds overhead. Use conservative thresholds (<code>long_query_time</code>, <code>log_min_duration_statement</code>) and narrow time windows when loading digest stats.</p></div>
+
+<h2 id="qla-workflow">Recommended tuning workflow</h2>
+<ol>
+<li><strong>Load</strong> the smallest window that captures the problem (digest is usually enough for MySQL; <code>pg_stat_statements</code> for PostgreSQL).</li>
+<li><strong>Filter</strong> by database, table, or query text; on PostgreSQL use <strong>Tune DB</strong> to focus one schema.</li>
+<li><strong>Review</strong> Query Fingerprints sorted by impact — inspect bubble chart spikes.</li>
+<li><strong>Optimize All Queries</strong> (or top N via settings) to populate index recommendations.</li>
+<li><strong>Export Index DDL</strong> for change review, or <strong>Create Indexes + Validate</strong> to measure EXPLAIN improvement on the server.</li>
+<li>For hard cases, use row <strong>⚡ Optimize</strong> to open the full <a href="query-optimizer.html#qo-rewrites-mysql">Query Optimizer</a> (rewrites, visual explain, trace).</li>
+<li>Truncate or rotate logs after a tuning pass so the next analysis is not skewed by fixed queries.</li>
+</ol>
+
+<h2 id="qla-privileges">Privileges &amp; troubleshooting</h2>
+<ul>
+<li><strong>Integrated load</strong> needs <code>SHOW GLOBAL VARIABLES</code>, digest-table SELECT, and schema privileges for EXPLAIN on your queries.</li>
+<li><strong>Upload path</strong> works offline — only file read access on your machine.</li>
+<li>If <strong>mysql.slow_log</strong> or digest buttons stay disabled, check the tooltip on the button or the home error banner for the server reason.</li>
+<li>PostgreSQL <em>Not installed</em> badge → run <code>CREATE EXTENSION pg_stat_statements</code> in the connect-through database and ensure the library is preloaded.</li>
+<li>Empty Recommended Indexes after Optimize All → statement may not be optimizable, or no index would help (check row tooltip).</li>
+</ul>
+
+<h2 id="qla-tips">Tips</h2>
+<ul>
+<li>Prefer <strong>Query Digest</strong> / <code>pg_stat_statements</code> for ongoing triage — faster than parsing multi-gigabyte log files.</li>
+<li>Use <strong>Top 5</strong> or <strong>Top 10</strong> Optimize All scope first on large workloads; widen after reviewing results.</li>
+<li><strong>Group by fingerprint</strong> surfaces ORM/query-builder patterns that raw log lines hide.</li>
+<li>Pair batch index creation with the <a href="query-optimizer.html#qo-indexes">Query Optimizer Create Index flow</a> when you need single-query rewrite guidance alongside DDL.</li>
+<li>Related: <a href="performance-monitor.html#pm-overview">Performance Monitor</a> for live server metrics; <a href="query-profiler.html">Query Profiler</a> for session-level timing.</li>
+</ul>
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

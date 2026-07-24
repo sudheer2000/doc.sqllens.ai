@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Unified SkyLineMySQL product guide: Query Builder drag-and-drop, SQL with AI (@ prompts, ? lines, CodeLens), Query Optimizer (EXPLAIN + index recommendations + trace), keyboard shortcuts, SQL examples, and full SQL autocomplete (IntelliSense, JOIN ON, favorites, diagnostics, MySQL library)." />
+  <title>SkyLineMySQL — Product guide (Query Builder + SQL with AI + Query Optimizer + autocomplete)</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --sidebar-bg: #0a0d12;
+      --bg-card: #161b22;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-dim: rgba(88, 166, 255, 0.12);
+      --border: #30363d;
+      --tree-line: #21262d;
+      --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+      --sidebar-w: 280px;
+      --radius: 8px;
+      /* SQL editor–style tokens (light UI: pink keywords / green strings / black ids → dark equivalents) */
+      --sql-keyword: #d73a9a;
+      --sql-string: #22863a;
+      --sql-string-on-dark: #56d364;
+      --sql-identifier: #e6edf3;
+      --sql-number: #79b8ff;
+      --sql-comment: #8b949e;
+      --sql-chrome-bg: #21262d;
+      --sql-chrome-border: #30363d;
+      --sql-panel-bg: #0d1117;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+      .sidebar { transition: none !important; }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .shell {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ——— Sidebar (tree) ——— */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      align-self: flex-start;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 1rem 0 2rem;
+      z-index: 40;
+    }
+
+    .sidebar-brand {
+      padding: 0.5rem 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.75rem;
+    }
+    .sidebar-brand strong {
+      display: block;
+      font-size: 0.95rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .sidebar-brand span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-toggle {
+      display: none;
+      margin: 0.75rem 1rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      cursor: pointer;
+      width: calc(100% - 2rem);
+    }
+
+    .tree {
+      list-style: none;
+      margin: 0;
+      padding: 0 0.5rem;
+    }
+    .tree ul {
+      list-style: none;
+      margin: 0.15rem 0 0.5rem 0;
+      padding: 0 0 0 0.65rem;
+      border-left: 1px solid var(--tree-line);
+    }
+    .tree > li {
+      margin: 0.35rem 0;
+    }
+    .tree-label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      padding: 0.6rem 0.75rem 0.25rem;
+    }
+    .tree a {
+      display: block;
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      line-height: 1.35;
+      border-left: 2px solid transparent;
+      margin-left: -2px;
+      transition: color 0.2s, background 0.2s, border-color 0.2s;
+    }
+    .tree a:hover {
+      color: var(--text);
+      background: var(--accent-dim);
+    }
+    .tree a.active {
+      color: var(--accent);
+      background: var(--accent-dim);
+      border-left-color: var(--accent);
+    }
+
+    /* ——— Main ——— */
+    main {
+      flex: 1;
+      min-width: 0;
+      max-width: 820px;
+      padding: 2rem 2rem 4rem 2.5rem;
+    }
+
+    .callout {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.15rem;
+      margin: 1.25rem 0;
+      border-left: 3px solid var(--accent);
+    }
+    .callout strong { color: #fff; }
+
+    h1 {
+      font-size: 1.85rem;
+      font-weight: 650;
+      margin: 0 0 0.75rem;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin: 0 0 2rem;
+      max-width: 52ch;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin: 2.25rem 0 0.75rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+    h2:first-of-type {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+    h3 {
+      font-size: 1rem;
+      margin: 1.5rem 0 0.5rem;
+      color: #c9d1d9;
+    }
+
+    p { margin: 0.65rem 0; max-width: 65ch; }
+    ul, ol { max-width: 65ch; }
+    li { margin: 0.35rem 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 1rem 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    th, td {
+      padding: 0.55rem 0.65rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th { background: var(--bg-card); color: var(--accent); font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+
+    pre {
+      margin: 0.75rem 0;
+      padding: 1rem 1.1rem;
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.84em;
+      background: var(--bg-card);
+      padding: 0.12em 0.35em;
+      border-radius: 4px;
+      color: #79c0ff;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: #7ee787;
+    }
+
+    /* SQL blocks: chrome bar + panel (structure injected by script) */
+    .sql-pre-wrap {
+      margin: 0.75rem 0;
+    }
+    .sql-block-chrome {
+      border: 1px solid var(--sql-chrome-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--sql-panel-bg);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    .sql-block-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.45rem 0.55rem 0.45rem 0.75rem;
+      background: var(--sql-chrome-bg);
+      border-bottom: 1px solid var(--sql-chrome-border);
+    }
+    .sql-block-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text);
+      user-select: none;
+    }
+    .sql-block-icon {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: -0.02em;
+    }
+    .sql-copy-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.1rem;
+      height: 2.1rem;
+      padding: 0;
+      margin: 0;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: color 0.15s, background 0.15s;
+    }
+    .sql-copy-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .sql-copy-btn:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .sql-copy-btn.is-done {
+      color: var(--sql-string-on-dark);
+    }
+    .sql-copy-btn svg {
+      display: block;
+    }
+
+    .sql-block-body {
+      display: block;
+    }
+    .sql-block-body > pre:not(.sql-linenos-col) {
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      padding: 0.85rem 1rem 1rem 1rem;
+      background: var(--sql-panel-bg);
+    }
+
+    /* highlight.js SQL — align with tool palette */
+    pre code.hljs {
+      color: var(--sql-identifier);
+    }
+    .hljs-keyword,
+    .hljs-built_in,
+    .hljs-meta .hljs-keyword {
+      color: var(--sql-keyword) !important;
+    }
+    .hljs-string,
+    .hljs-attr,
+    .hljs-addition {
+      color: var(--sql-string-on-dark) !important;
+    }
+    .hljs-number,
+    .hljs-literal {
+      color: var(--sql-number) !important;
+    }
+    .hljs-comment {
+      color: var(--sql-comment) !important;
+      font-style: italic;
+    }
+    .hljs-function .hljs-title,
+    .hljs-title.function_,
+    .hljs-title.class_,
+    .hljs-title {
+      color: var(--sql-identifier) !important;
+    }
+    .hljs-type {
+      color: var(--sql-identifier) !important;
+    }
+
+    /* Optional line numbers (set data-sql-line-numbers on <pre>; injected by script) */
+    .sql-block-body.sql-pre--numbered {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+    }
+    .sql-block-body.sql-pre--numbered .sql-linenos-col {
+      margin: 0;
+      padding: 0.85rem 0.65rem 1rem 0.85rem;
+      background: #0a0e14;
+      border-right: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.5;
+      text-align: right;
+      user-select: none;
+      flex-shrink: 0;
+      min-width: 2.25rem;
+      border-radius: 0;
+      border: none;
+    }
+    .sql-block-body.sql-pre--numbered > pre:not(.sql-linenos-col) {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Checklist: SQL blocks (wrapped + line numbers use .sql-pre-wrap) */
+    #checklist li .sql-pre-wrap {
+      max-width: min(72ch, 100%);
+      margin: 0.5rem 0 0.85rem;
+    }
+    #checklist li .sql-pre-wrap:last-child {
+      margin-bottom: 0.35rem;
+    }
+
+    .step {
+      display: flex;
+      gap: 0.75rem;
+      margin: 0.75rem 0;
+      align-items: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 6px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-width: 960px) {
+      .nav-toggle { display: block; }
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        box-shadow: 8px 0 24px rgba(0,0,0,0.4);
+      }
+      .sidebar.open { transform: translateX(0); }
+      main { padding: 1.25rem 1.25rem 3rem; max-width: none; }
+      .backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 30;
+      }
+      .backdrop.show { display: block; }
+    }
+
+    @media (min-width: 961px) {
+      .backdrop { display: none !important; }
+    }
+
+    .kbd {
+      font-family: var(--font-mono);
+      font-size: 0.78em;
+      border: 1px solid var(--border);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      background: var(--bg-card);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 1rem 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      -webkit-overflow-scrolling: touch;
+    }
+    .table-wrap table {
+      margin: 0;
+      min-width: 640px;
+      font-size: 0.8rem;
+    }
+    .table-wrap th:first-child,
+    .table-wrap td:first-child {
+      white-space: nowrap;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: #a5d6ff;
+      vertical-align: top;
+    }
+    .table-caption {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin: 1.5rem 0 0.35rem;
+    }
+
+    .demo-gif {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      display: block;
+      margin: 1rem auto;
+    }
+    figcaption.demo-gif-cap {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+      max-width: 42rem;
+      margin: 0 auto 1.5rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    main > section {
+      animation: fadeIn 0.45s ease both;
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" id="nav-backdrop" aria-hidden="true"></div>
+  <div class="shell">
+        <aside class="sidebar" id="sidebar" aria-label="Table of contents">
+      <div class="sidebar-brand">
+        <strong>SkyLineMySQL</strong>
+        <span>Product guide · Query Builder + SQL with AI + Query Optimizer + autocomplete</span>
+      </div>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false">☰ Contents</button>
+      <nav>
+        <ul class="tree">
+          <li><a href="#start">Start here (overview)</a></li>
+          <li><a href="#gif-demo">Animated overview (GIF)</a></li>
+          <li>
+            <span class="tree-label">Query Builder</span>
+            <ul>
+              <li><a href="#what">What is the Query Builder?</a></li>
+              <li><a href="#vs-ai">Why it is often faster than AI</a></li>
+              <li><a href="#how">How you use it in VS Code</a></li>
+            </ul>
+          </li>
+          <li>
+            <span class="tree-label">Builder · Reference</span>
+            <ul>
+              <li><a href="#shortcuts">All keyboard shortcuts</a></li>
+            </ul>
+          </li>
+          <li>
+            <span class="tree-label">Builder · Examples (SQL)</span>
+            <ul>
+              <li><a href="#ex-select">Simple SELECT</a></li>
+              <li><a href="#ex-dml">DML: INSERT, UPDATE, DELETE</a></li>
+              <li><a href="#ex-joins">Complex joins</a></li>
+              <li><a href="#ex-sub">Subqueries</a></li>
+              <li><a href="#ex-advanced">CTE, UNION, EXISTS</a></li>
+            </ul>
+          </li>
+          <li>
+            <span class="tree-label">Builder · Demos</span>
+            <ul>
+              <li><a href="#employees">Sample database</a></li>
+              <li><a href="#checklist">Day-of checklist</a></li>
+            </ul>
+          </li>
+          <li>
+            <span class="tree-label">SQL with AI</span>
+            <ul>
+              <li><a href="#ai-start">Overview &amp; when to use it</a></li>
+              <li><a href="#ai-syntax"><code>@</code>, <code>?</code>, and directives</a></li>
+              <li><a href="#ai-codelens">CodeLens &amp; commands</a></li>
+              <li><a href="#ai-settings">Settings &amp; providers</a></li>
+            </ul>
+          </li>
+          <li>
+            <span class="tree-label">Query Optimizer</span>
+            <ul>
+              <li><a href="#qo-overview">Overview (this page)</a></li>
+              <li><a href="query-optimizer-product-guide.html">Full HTML guide →</a></li>
+            </ul>
+          </li>
+          <li>
+            <span class="tree-label">SQL autocomplete</span>
+            <ul>
+              <li><a href="#auto-start">Overview</a></li>
+              <li><a href="#auto-prereq">Connection &amp; schema</a></li>
+              <li><a href="#auto-invoke">Invoke &amp; filter</a></li>
+              <li><a href="#auto-vs-builder">vs Query Builder</a></li>
+              <li><a href="#auto-chain">Provider chain</a></li>
+              <li><a href="#auto-algorithm">How the list is built</a></li>
+            </ul>
+          </li>
+          <li>
+            <span class="tree-label">Autocomplete · Features</span>
+            <ul>
+              <li><a href="#auto-shortcut-hints">Shortcut hints</a></li>
+              <li><a href="#auto-table-aliases">Table aliases</a></li>
+              <li><a href="#auto-join-on">JOIN &amp; ON</a></li>
+              <li><a href="#auto-favorites-recent">Favorites &amp; frequent</a></li>
+              <li><a href="#auto-diagnostics">Diagnostics</a></li>
+              <li><a href="#auto-mysql-library">MySQL library</a></li>
+              <li><a href="#auto-insert-columns">INSERT columns</a></li>
+              <li><a href="#auto-schema-ddl">Schema &amp; keywords</a></li>
+              <li><a href="#auto-list-ordering">List ordering</a></li>
+              <li><a href="#auto-accept-telemetry">Accept &amp; telemetry</a></li>
+              <li><a href="#auto-troubleshoot">Troubleshooting</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main>
+      <section id="start">
+        <h1>SkyLineMySQL — product guide</h1>
+        <p class="subtitle">
+          This single page covers <strong>Query Builder</strong> (drag-and-drop from the live connection tree, typed shortcuts before a drop);
+          <strong>SQL autocomplete</strong> (IntelliSense-style completions: JOIN <code>ON</code> lines, favorites, diagnostics, MySQL library, schema objects);
+          <strong>SQL with AI</strong> (natural-language lines in the editor → generated SQL via CodeLens or the AI panel);
+          and introduces the <strong>Query Optimizer</strong> (<code>EXPLAIN</code>, index recommendations, trace). For optimizer-only depth, open
+          <a href="query-optimizer-product-guide.html">query-optimizer-product-guide.html</a>.
+          Use the <strong>tree on the left</strong> to jump between builder topics, SQL examples, AI prompts, autocomplete, and optimizer overview.
+        </p>
+        <div class="callout">
+          <strong>One sentence each.</strong>
+          <strong>Query Builder</strong> assembles real MySQL from your <strong>live connection tree</strong> by dragging tables and columns into the SQL editor,
+          with optional <strong>shortcuts</strong> typed before a drop — schema stays the source of truth.
+          <strong>SQL autocomplete</strong> speeds typing with metadata-backed lists (including flagship JOIN <code>ON</code> suggestions); see <a href="#auto-start">SQL autocomplete — overview</a>.
+          <strong>SQL with AI</strong> turns tagged or plain English lines (for example starting with <code>@</code> or ending with <code>?</code>) into SQL via CodeLens; see <a href="#ai-start">SQL with AI — overview</a>.
+          <strong>Query Optimizer</strong> runs live <code>EXPLAIN</code>, suggests indexes (with TT / join-aware reasoning), exposes an algorithm <strong>Trace</strong>, and can validate DDL in-panel; short intro: <a href="#qo-overview">Query Optimizer — overview</a>; full detail: <a href="query-optimizer-product-guide.html">query-optimizer-product-guide.html</a>.
+        </div>
+
+        <figure id="gif-demo">
+          <figcaption class="table-caption" style="margin-top:1.75rem;">Animated overview (simplified)</figcaption>
+          <img
+            class="demo-gif"
+            src="animations/query-builder-simple-demo.gif"
+            width="720"
+            height="400"
+            alt="Animated steps: MySQL tree and SQL editor, highlight employees table, optional s shortcut, drag arrow, SELECT template appears"
+            loading="lazy"
+          />
+          <figcaption class="demo-gif-cap">
+            Stylized storyboard (not a live screen recording): empty editor → optional <span class="kbd">s</span> shortcut → drag <code>employees</code> from the tree →
+            a typical <code>SELECT</code> starter line. Regenerate with
+            <code>python3 scripts/gen_query_builder_demo_gif.py</code> after editing the script (writes <code>prod-document/animations/query-builder-simple-demo.gif</code>). SQLLens.AI docs use <code>productDoc/images/query-builder-landing-demo.gif</code>.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="what">
+        <h2>What is the Query Builder?</h2>
+        <p>It is <strong>not</strong> a separate diagram-only canvas. It lives <strong>inside the SQL editor</strong> in VS Code, next to your file and Git workflow.</p>
+        <ul>
+          <li><strong>Drag a table</strong> from the sidebar connection tree into a <code>.sql</code> file → get a sensible starting statement (often a <code>SELECT</code>).</li>
+          <li><strong>Drag another table</strong> when you already have a query → the extension can propose <strong>JOIN</strong> text using <strong>foreign-key relationships</strong> it already knows from metadata.</li>
+          <li><strong>Drag a column</strong> → insertion depends on where your cursor sits (for example <code>WHERE</code> vs <code>SELECT</code> vs <code>JOIN … ON</code>), so you spend less time fixing placement.</li>
+          <li><strong>Shortcuts</strong> (short letters typed right before you drag) steer the kind of statement: <code>s</code> for SELECT-style patterns, <code>u</code> for UPDATE, <code>LJ</code> for LEFT JOIN, <code>W</code> for WHERE templates, and more.</li>
+        </ul>
+      </section>
+
+      <section id="vs-ai">
+        <h2>Why it is often faster than AI (for this kind of work)</h2>
+        <p>AI is strong when requirements are fuzzy or exploratory. The Query Builder wins when the task is <strong>schema-coupled</strong>: correct table names, columns, and joins tied to <em>your</em> database.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Query Builder (drag + tree)</th>
+              <th>Typical AI-only flow</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Names &amp; qualification</td>
+              <td>Objects come from the tree — no typos, no wrong catalog.</td>
+              <td>Often needs a correction pass (“wrong table”, “column does not exist”).</td>
+            </tr>
+            <tr>
+              <td>JOIN keys</td>
+              <td>Can use cached FK metadata; you pick among real paths.</td>
+              <td>May invent plausible but wrong <code>ON</code> clauses without perfect context.</td>
+            </tr>
+            <tr>
+              <td>Latency</td>
+              <td>Instant once you know the gesture — no round trip.</td>
+              <td>Each prompt waits on network + model.</td>
+            </tr>
+            <tr>
+              <td>Privacy</td>
+              <td>Metadata-driven; you control what runs.</td>
+              <td>Sending schema or SQL to a third party may be restricted by policy.</td>
+            </tr>
+            <tr>
+              <td>Best together</td>
+              <td colspan="2">Use the builder for the skeleton and joins; use AI when you want natural-language exploration or bulk explanations — then paste results back into the editor for review.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="text-muted" style="color:var(--text-muted);font-size:0.9rem;">Marketing-safe wording: <em>often faster for schema-coupled queries</em> — not “always faster than AI” in every scenario.</p>
+      </section>
+
+      <section id="how">
+        <h2>How you use it in VS Code (first session)</h2>
+        <div class="step"><span class="step-num">1</span><div>Connect to MySQL and pick the <strong>active database</strong> (tree badge / per-file DB selection should match the editor tab you are using).</div></div>
+        <div class="step"><span class="step-num">2</span><div>Open or create a <code>.sql</code> file and click where you want SQL to appear.</div></div>
+        <div class="step"><span class="step-num">3</span><div>Optional: type a <strong>shortcut</strong> (e.g. <span class="kbd">s</span> then drag a table) to steer statement type.</div></div>
+        <div class="step"><span class="step-num">4</span><div><strong>Drag</strong> a table or column from the tree into the editor; repeat to add JOINs or columns in the right clause.</div></div>
+        <div class="step"><span class="step-num">5</span><div>Replace placeholders like <code>'?'</code> with real values and run the query.</div></div>
+        <p style="font-size:0.9rem;color:var(--text-muted);margin-top:1rem;">For <strong>SQL autocomplete</strong> (IntelliSense, JOIN <code>ON</code> lines, favorites, diagnostics, MySQL library), continue to <a href="#auto-start">SQL autocomplete — overview</a> in this same guide. For <strong>natural language → SQL</strong> in the editor, see <a href="#ai-start">SQL with AI — overview</a>. For <strong>EXPLAIN + index recommendations</strong>, see <a href="#qo-overview">Query Optimizer — overview</a> or the <a href="query-optimizer-product-guide.html">full optimizer guide</a>.</p>
+      </section>
+
+      <section id="ai-start">
+        <h2>SQL with AI — overview</h2>
+        <p>
+          SkyLineMySQL can turn a <strong>plain-language request</strong> in a <code>.sql</code> file into executable SQL using your configured LLM provider.
+          The editor path is driven by a <strong>CodeLens</strong> link (e.g. “Generate SQL”) on the line that looks like a prompt; the extension also offers an <strong>AI Assist</strong> side panel for longer workflows.
+          Schema context (table/column names) can be attached automatically when a connection is active — see <a href="#ai-settings">Settings &amp; providers</a>.
+        </p>
+        <p class="text-muted" style="font-size:0.9rem;color:var(--text-muted);margin-top:0.75rem;">
+          <strong>Companion (changelog-style notes):</strong> <a href="sql-ai-writing-product-guide.html">sql-ai-writing-product-guide.html</a> — block-comment <code>@AI</code>, prompt↔SQL binding summary, and <strong>SQL autocomplete off inside comments</strong> (<code>/* */</code>, <code>--</code>, <code>#</code>).
+        </p>
+        <div class="callout">
+          <strong>Together with the Query Builder.</strong>
+          Use <a href="#what">drag-and-drop</a> when names and joins must match your live schema exactly; use AI when you want to describe intent in English (or a tagged line) and refine the result.
+        </div>
+      </section>
+
+      <section id="ai-syntax">
+        <h2>SQL with AI — what counts as a prompt?</h2>
+        <p>
+          The extension does <strong>not</strong> require a magic word like <code>@ai</code> by itself.
+          Several shapes are recognized so you can pick what reads best in your notes.
+        </p>
+
+        <p class="table-caption">Line shapes that reliably show “Generate SQL” CodeLens</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Form</th>
+                <th>Example</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Leading <code>@</code></strong></td>
+                <td><code>@ List employees hired in 2024</code></td>
+                <td>After trimming, <strong>any</strong> line that starts with <code>@</code> is treated as a natural-language prompt (not only <code>@ai</code>). More specific prefixes like <code>@ask:</code> / <code>@sql:</code> / <code>@generate:</code> are handled first, then the generic <code>@</code> rule.</td>
+              </tr>
+              <tr>
+                <td><strong>Line ends with <code>?</code></strong></td>
+                <td><code>Which departments have no employees?</code></td>
+                <td>The trimmed line must end with <code>?</code>. The intent layer always classifies that as a prompt.</td>
+              </tr>
+              <tr>
+                <td><strong><code>AI:</code> / <code>@AI:</code> directive</strong></td>
+                <td><code>AI: "orders over $500 last month"</code></td>
+                <td>Matched case-insensitively; optional quotes after the colon. Same family as <code>@ask:</code> in the directive detector.</td>
+              </tr>
+              <tr>
+                <td><strong><code>@ask:</code> in a comment</strong></td>
+                <td><code>-- @ask: count rows per status</code></td>
+                <td>Also supported with <code>//</code> style line comments for the <code>@ask:</code> prefix.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-caption">Explicit directive prefixes (intent detector)</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Prefix</th><th>Role</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>@ask:</code></td><td>Natural language → SQL (same intent family as other prompts).</td></tr>
+              <tr><td><code>@sql:</code></td><td>Tagged prompt line (still NL → SQL from the model’s point of view).</td></tr>
+              <tr><td><code>@generate:</code></td><td>Explicit “generate” directive.</td></tr>
+              <tr><td><code>@</code> …</td><td>Fallback: any remaining line starting with <code>@</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style="font-size:0.9rem;color:var(--text-muted);">
+          Implementation reference: <code>src/provider/codelen/aiSqlCodeLensProvider.ts</code> (CodeLens rules),
+          <code>src/service/ai/sqlGenerator/intentDetector.ts</code> (directives and <code>?</code> lines),
+          <code>src/provider/parser/sqlBlockAnalyzer.ts</code> (<code>AI:</code> / <code>@AI:</code> / <code>@ask:</code> directive strip).
+        </p>
+
+        <h3>Examples in a <code>.sql</code> file</h3>
+        <pre data-sql-line-numbers><code>-- @ask: employees in Finance with salary above department average
+
+@sql: SELECT-style list of open tickets assigned to me
+
+Which tables reference employees.employee_id?
+
+AI: "create a report query: revenue by region for Q3"</code></pre>
+      </section>
+
+      <section id="ai-codelens">
+        <h2>SQL with AI — CodeLens and commands</h2>
+        <p>
+          With <strong>AI enabled</strong> in settings, put the caret on a prompt line: a <strong>CodeLens</strong> such as <strong>“Generate SQL”</strong> appears above that line.
+          Click it to call the generator; the extension replaces the prompt range with a SQL comment of your request plus the model’s SQL (exact behavior follows the registered command, e.g. insert vs replace variants).
+        </p>
+        <ul>
+          <li><strong>Command Palette</strong> — search for SkyLine / MySQL AI commands, for example <code>mysql.ai.generateSql</code>, <code>mysql.ai.generateSqlReplace</code>, <code>mysql.ai.generateSqlWithProvider</code>, or open <code>mysql.ai.openAiPanel</code> for the webview assist UI.</li>
+          <li><strong>Inside an existing SQL statement</strong> — CodeLens is suppressed so you are not offered “Generate SQL” in the middle of a <code>SELECT</code> list or <code>WHERE</code> clause; move the caret to a blank or prompt line outside the block.</li>
+          <li><strong>Selected text</strong> — If you select text that looks like natural language (not valid SQL), the same CodeLens can appear at the selection’s start line.</li>
+        </ul>
+      </section>
+
+      <section id="ai-settings">
+        <h2>SQL with AI — settings and providers</h2>
+        <ul>
+          <li><strong>Master switch</strong> — <code>skyline-mysql.ai.enabled</code> must be on or CodeLens generation is hidden.</li>
+          <li><strong>Providers &amp; keys</strong> — Configure OpenAI, Anthropic, Groq, Grok, Ollama, OpenRouter, or custom endpoints under <code>skyline-mysql.ai.*</code> in Settings; use the “AI Settings” / API key commands when prompted.</li>
+          <li><strong>Schema in prompts</strong> — Options such as <code>skyline-mysql.ai.includeSchemaContext</code> and <code>skyline-mysql.ai.schemaContextMode</code> control how much structural metadata is sent with your line (row data is not sent as part of this path).</li>
+          <li><strong>Cloud entitlements</strong> — Some flows check Skyline sign-in / plan before calling the model; if blocked, follow the message to sign in or upgrade.</li>
+        </ul>
+      </section>
+
+      <section id="shortcuts">
+        <h2>All keyboard shortcuts (reference)</h2>
+        <p>Type the shortcut as the <strong>end of the current line</strong> in the SQL editor, then <strong>drag</strong> a table or column from the connection tree. What gets inserted depends on the shortcut and whether you drop a <strong>table</strong> or <strong>column</strong> (column drops are <strong>clause-aware</strong>: cursor in <code>WHERE</code> vs <code>SELECT</code> vs <code>JOIN … ON</code> changes the fragment).</p>
+        <div class="callout">
+          <strong>Single-letter shortcuts are intentional but crowded.</strong>
+          For example <span class="kbd">s</span> → SELECT-style flow, <span class="kbd">d</span> → DELETE, <span class="kbd">c</span> → CREATE TABLE (not “column”), <span class="kbd">desc</span> / <span class="kbd">dsc</span> → <code>DESCRIBE</code> (table shape), while <strong>descending sort</strong> uses <span class="kbd">od</span> (ORDER BY … DESC), not <code>DESC</code> alone.
+        </div>
+        <p style="font-size:0.88rem;color:var(--text-muted);">The table below mirrors the pattern surface in SkyLineMySQL <code>src/service/dragDrop/sqlContextAnalyzer.ts</code> (<code>SQL_PATTERNS</code>). <strong>WITH</strong> (CTE) and <strong>UNION</strong> are not separate shortcut tokens—you type those keywords, then keep using drag-and-drop inside each branch.</p>
+
+        <p class="table-caption">Core DML</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Type before drag</th><th>Operation</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code>s</code>, <code>se</code>, <code>sel</code>, <code>sc</code>, <code>select</code> …</td><td>SELECT starter</td><td>Type <span class="kbd">s</span> on a blank line → drag <code>employees</code> → you get a <code>SELECT</code> template against that table; add columns by dragging into the <code>SELECT</code> list.</td></tr>
+              <tr><td><code>i</code>, <code>in</code>, <code>ins</code>, <code>insert</code> …</td><td>INSERT starter</td><td>Type <span class="kbd">ins</span> → drag <code>departments</code> → column list / <code>VALUES</code> skeleton you can fill.</td></tr>
+              <tr><td><code>u</code>, <code>up</code>, <code>upd</code>, <code>update</code> …</td><td>UPDATE starter</td><td>Type <span class="kbd">u</span> → drag <code>employees</code> → <code>UPDATE … SET</code> pattern; drag columns into <code>SET</code> or <code>WHERE</code> with cursor placed there.</td></tr>
+              <tr><td><code>d</code>, <code>de</code>, <code>del</code>, <code>delete</code> …</td><td>DELETE starter</td><td>Type <span class="kbd">del</span> → drag <code>titles</code> → <code>DELETE FROM … WHERE</code> style template (review before run).</td></tr>
+              <tr><td><code>r</code>, <code>re</code>, <code>rep</code>, <code>replace</code> …</td><td>REPLACE (MySQL)</td><td>Type <span class="kbd">rep</span> → drag table → <code>REPLACE INTO</code> starter.</td></tr>
+              <tr><td><code>iod</code>, <code>iodu</code>, <code>insert on duplicate</code> …</td><td>INSERT … ON DUPLICATE KEY</td><td>Type <span class="kbd">iodu</span> → drag table → upsert-style template.</td></tr>
+              <tr><td><code>tr</code>, <code>trunc</code>, <code>truncate</code>, or <code>t</code></td><td>TRUNCATE TABLE</td><td>Type <span class="kbd">truncate</span> → drag <code>employees</code> (use only on disposable sandboxes).</td></tr>
+              <tr><td><code>sec</code></td><td>SELECT column mode</td><td>For column-focused SELECT behavior when dragging columns (see extension).</td></tr>
+              <tr><td><code>upk</code>, <code>update … by key</code></td><td>UPDATE BY KEY pattern</td><td>Type <span class="kbd">upk</span> after partial <code>UPDATE … BY KEY</code> phrase per pattern → drag table to align with keyed update flows.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-caption">JOIN types</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Type before drag</th><th>Operation</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code>ij</code>, <code>inner</code>, <code>inner join</code></td><td>INNER JOIN</td><td>With a <code>SELECT</code> already in the editor, type <span class="kbd">ij</span> → drag <code>salaries</code> → join clause toward <code>employees</code> using FK metadata when available.</td></tr>
+              <tr><td><code>lj</code>, <code>left</code>, <code>left join</code> …</td><td>LEFT [OUTER] JOIN</td><td>Type <span class="kbd">lj</span> → drag <code>departments</code> after <code>dept_emp</code> is in the query → keep all employees even without a match.</td></tr>
+              <tr><td><code>rj</code>, <code>right</code>, <code>right join</code> …</td><td>RIGHT [OUTER] JOIN</td><td>Type <span class="kbd">rj</span> → drag fact table → useful when dimension is driver.</td></tr>
+              <tr><td><code>fj</code>, <code>full</code>, <code>full join</code> …</td><td>FULL OUTER JOIN</td><td>Type <span class="kbd">fj</span> → drag second table. <strong>MySQL has no native FULL OUTER JOIN</strong>—for real MySQL demos, prefer two <code>LEFT JOIN</code>s unioned or a conditional pattern; use this row to show cross-dialect intent only.</td></tr>
+              <tr><td><code>cj</code>, <code>cross</code>, <code>cross join</code></td><td>CROSS JOIN</td><td>Type <span class="kbd">cj</span> → drag table → Cartesian pattern (always add predicates carefully).</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-caption">WHERE, ORDER BY, GROUP BY, HAVING, aggregates</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Type before drag</th><th>Operation</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code>w</code>, <code>where</code> …</td><td>WHERE template</td><td>Put cursor in a <code>WHERE</code> idea, type <span class="kbd">w</span> → drag <code>employees.gender</code> → predicate fragment such as <code>AND gender = '?'</code> (exact shape depends on context).</td></tr>
+              <tr><td><code>wl</code>, <code>wlike</code></td><td>WHERE LIKE</td><td>Type <span class="kbd">wl</span> → drag <code>last_name</code> → <code>LIKE '%?%'</code>-style template.</td></tr>
+              <tr><td><code>wi</code>, <code>win</code></td><td>WHERE IN</td><td>Type <span class="kbd">win</span> → drag column → <code>IN (?,?,?)</code> style list starter.</td></tr>
+              <tr><td><code>wb</code>, <code>wbet</code></td><td>WHERE BETWEEN</td><td>Type <span class="kbd">wb</span> → drag <code>salary</code> → between-range template.</td></tr>
+              <tr><td><code>wn</code>, <code>wnull</code></td><td>IS NULL</td><td>Type <span class="kbd">wn</span> → drag nullable column.</td></tr>
+              <tr><td><code>wnn</code>, <code>wnotnull</code></td><td>IS NOT NULL</td><td>Type <span class="kbd">wnn</span> → drag column.</td></tr>
+              <tr><td><code>o</code>, <code>oa</code>, <code>order</code>, <code>order by</code></td><td>ORDER BY (ascending)</td><td>Type <span class="kbd">o</span> → drag <code>hire_date</code> into an <code>ORDER BY</code> position.</td></tr>
+              <tr><td><code>od</code></td><td>ORDER BY DESC</td><td>Type <span class="kbd">od</span> → drag <code>salary</code> → descending sort fragment.</td></tr>
+              <tr><td><code>g</code>, <code>gb</code>, <code>group by</code></td><td>GROUP BY</td><td>Type <span class="kbd">g</span> → drag <code>dept_name</code> (via table.column) for report grouping.</td></tr>
+              <tr><td><code>h</code>, <code>hav</code>, <code>having</code></td><td>HAVING</td><td>Type <span class="kbd">h</span> → drag aggregate or alias column reference.</td></tr>
+              <tr><td><code>cnt</code>, <code>count</code></td><td>COUNT(…)</td><td>Type <span class="kbd">cnt</span> → drag column → <code>COUNT(col)</code> style.</td></tr>
+              <tr><td><code>cntd</code>, <code>countd</code></td><td>COUNT(DISTINCT …)</td><td>Type <span class="kbd">cntd</span> → drag <code>emp_no</code> for distinct headcount patterns.</td></tr>
+              <tr><td><code>sum</code>, <code>avg</code>, <code>max</code>, <code>min</code></td><td>Aggregate wrapper</td><td>Type <span class="kbd">avg</span> → drag <code>salary</code> inside a grouped query.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-caption">DDL — tables, indexes, database</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Type before drag</th><th>Operation</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code>c</code>, <code>cr</code>, <code>cre</code>, <code>create</code>, <code>create table</code> …</td><td>CREATE TABLE</td><td>Type <span class="kbd">c</span> → drag <code>employees</code> as naming seed / template (then edit DDL by hand).</td></tr>
+              <tr><td><code>a</code>, <code>al</code>, <code>alt</code>, <code>alter table</code> …</td><td>ALTER TABLE</td><td>Type <span class="kbd">a</span> → drag table → alter starter.</td></tr>
+              <tr><td><code>dr</code>, <code>drop</code>, <code>drop table</code> …</td><td>DROP TABLE</td><td>Type <span class="kbd">drop</span> → drag table (sandbox only).</td></tr>
+              <tr><td><code>ci</code>, <code>cri</code>, <code>create index</code> …</td><td>CREATE INDEX</td><td>Type <span class="kbd">ci</span> → drag table → index DDL starter on that object.</td></tr>
+              <tr><td><code>di</code>, <code>dri</code>, <code>drop index</code> …</td><td>DROP INDEX</td><td>Type <span class="kbd">di</span> → drag table / pick index name in editor.</td></tr>
+              <tr><td><code>cd</code>, <code>cdb</code>, <code>create database</code></td><td>CREATE DATABASE</td><td>Type <span class="kbd">cdb</span> → complete name by hand or drag-less flow per product.</td></tr>
+              <tr><td><code>ddb</code>, <code>drop database</code></td><td>DROP DATABASE</td><td>Extreme caution—sandbox only.</td></tr>
+              <tr><td><code>use</code></td><td>USE database</td><td>Type <span class="kbd">use</span> → align session DB (follow with identifier).</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-caption">ALTER fragments (after <code>ALTER TABLE …</code> prefix)</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Type before drag</th><th>Operation</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code>aac</code>, <code>alter … add column</code></td><td>ADD COLUMN</td><td>After <code>ALTER TABLE employees </code> type <span class="kbd">aac</span> → drag column metadata from tree if supported, else finish column definition manually.</td></tr>
+              <tr><td><code>adc</code></td><td>DROP COLUMN</td><td>Same pattern with <span class="kbd">adc</span> for drop-column DDL.</td></tr>
+              <tr><td><code>amc</code></td><td>MODIFY COLUMN</td><td><span class="kbd">amc</span> for type changes.</td></tr>
+              <tr><td><code>arc</code></td><td>RENAME COLUMN</td><td><span class="kbd">arc</span> for rename column clause.</td></tr>
+              <tr><td><code>aai</code></td><td>ADD INDEX</td><td><span class="kbd">aai</span> → drag or type index columns.</td></tr>
+              <tr><td><code>adi</code></td><td>DROP INDEX</td><td><span class="kbd">adi</span> inside <code>ALTER TABLE</code> context.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-caption">Metadata &amp; analysis</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Type before drag</th><th>Operation</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code>sct</code>, <code>show create table</code></td><td>SHOW CREATE TABLE</td><td>Type <span class="kbd">sct</span> → drag <code>salaries</code> → instant DDL peek for demos.</td></tr>
+              <tr><td><code>desc</code>, <code>dsc</code>, <code>describe</code></td><td>DESCRIBE</td><td>Type <span class="kbd">desc</span> → drag <code>employees</code> → column list in result grid after run.</td></tr>
+              <tr><td><code>si</code>, <code>sit</code>, <code>show index</code></td><td>SHOW INDEX</td><td>Type <span class="kbd">si</span> → drag table → index report query.</td></tr>
+              <tr><td><code>sdb</code>, <code>show databases</code></td><td>SHOW DATABASES</td><td>Inventory servers during onboarding.</td></tr>
+              <tr><td><code>st</code>, <code>show tables</code></td><td>SHOW TABLES</td><td>List tables in current schema.</td></tr>
+              <tr><td><code>exp</code>, <code>explain</code></td><td>EXPLAIN</td><td>Type <span class="kbd">exp</span> → paste or build following <code>SELECT</code> then run plan analysis.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-caption">Maintenance &amp; transactions</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Type before drag</th><th>Operation</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code>opt</code>, <code>optimize</code> …</td><td>OPTIMIZE TABLE</td><td>Type <span class="kbd">opt</span> → drag large table name for maintenance demos.</td></tr>
+              <tr><td><code>anl</code>, <code>analyze</code> …</td><td>ANALYZE TABLE</td><td>After bulk load on sandbox, <span class="kbd">analyze</span> → drag <code>salaries</code>.</td></tr>
+              <tr><td><code>rpr</code>, <code>repair</code> …</td><td>REPAIR TABLE</td><td>MyISAM-era demos; know your engine before running.</td></tr>
+              <tr><td><code>chk</code>, <code>check</code> …</td><td>CHECK TABLE</td><td>Integrity check teaching moment.</td></tr>
+              <tr><td><code>b</code>, <code>beg</code>, <code>begin</code>, <code>start transaction</code></td><td>BEGIN / START TRANSACTION</td><td>Type <span class="kbd">b</span> at line start → wrap multi-statement demos.</td></tr>
+              <tr><td><code>com</code>, <code>commit</code></td><td>COMMIT</td><td>Close transaction block in scripts.</td></tr>
+              <tr><td><code>rb</code>, <code>rollback</code></td><td>ROLLBACK</td><td>Undo sandbox changes.</td></tr>
+              <tr><td><code>call</code></td><td>CALL procedure</td><td>Type <span class="kbd">call</span> then procedure name and args by hand.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="ex-select">
+        <h2>Example: simple SELECT</h2>
+        <p><strong>Goal:</strong> list ten employees with name and hire date.</p>
+        <p><strong>With the builder:</strong> drag <code>employees</code> on an empty line (or after <span class="kbd">s</span>), then drag columns into the <code>SELECT</code> list if needed, and add <code>LIMIT 10</code>.</p>
+        <pre data-sql-line-numbers><code>SELECT
+    emp_no,
+    first_name,
+    last_name,
+    hire_date
+FROM
+    employees.employees
+ORDER BY
+    hire_date DESC
+LIMIT   10;</code></pre>
+      </section>
+
+      <section id="ex-dml">
+        <h2>Example: DML (INSERT, UPDATE, DELETE)</h2>
+        <p>Shortcuts like <span class="kbd">i</span> / <span class="kbd">ins</span> (INSERT), <span class="kbd">u</span> (UPDATE), <span class="kbd">d</span> / <span class="kbd">del</span> (DELETE) plus a table drag give you a <strong>starting template</strong>. Always review before running against production.</p>
+        <h3>INSERT (pattern)</h3>
+        <pre data-sql-line-numbers><code>INSERT INTO employees.departments (
+    dept_no,
+    dept_name
+)
+VALUES (
+    'd010',
+    'AI Research'
+);</code></pre>
+        <h3>UPDATE (pattern)</h3>
+        <pre data-sql-line-numbers><code>UPDATE
+    employees.employees
+SET
+    first_name = 'Ann'
+WHERE
+    emp_no = 10001;</code></pre>
+        <h3>DELETE (pattern)</h3>
+        <pre data-sql-line-numbers><code>DELETE FROM
+    employees.departments
+WHERE
+    dept_no = 'd010';</code></pre>
+        <p style="font-size:0.9rem;color:var(--text-muted);">Examples use the <code>employees</code> sample schema; adjust table names if your database name differs.</p>
+      </section>
+
+      <section id="ex-joins">
+        <h2>Example: complex joins</h2>
+        <p><strong>Goal:</strong> current department name for each employee row (current assignment uses <code>to_date = '9999-01-01'</code> in the sample data).</p>
+        <p><strong>With the builder:</strong> start from <code>employees</code>, drag <code>dept_emp</code>, then <code>departments</code>, and let JOIN suggestions align <code>emp_no</code> and <code>dept_no</code>; refine predicates in <code>WHERE</code>.</p>
+        <pre data-sql-line-numbers><code>SELECT
+    e.emp_no,
+    e.first_name,
+    e.last_name,
+    d.dept_name
+FROM
+         employees.employees AS e
+    INNER JOIN employees.dept_emp AS de ON de.emp_no = e.emp_no
+    AND de.to_date = '9999-01-01'
+    INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+WHERE
+    e.last_name LIKE 'K%'
+ORDER BY
+    d.dept_name,
+    e.last_name
+LIMIT   50;</code></pre>
+        <h3>Another join pattern (salary + department)</h3>
+        <pre data-sql-line-numbers><code>SELECT
+    d.dept_name,
+    ROUND(AVG(s.salary), 2) AS avg_salary
+FROM
+         employees.salaries AS s
+    INNER JOIN employees.employees AS e ON e.emp_no = s.emp_no
+    INNER JOIN employees.dept_emp AS de ON de.emp_no = e.emp_no
+    AND de.to_date = '9999-01-01'
+    INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+WHERE
+    s.to_date = '9999-01-01'
+GROUP BY
+    d.dept_name
+ORDER BY
+    avg_salary DESC;</code></pre>
+      </section>
+
+      <section id="ex-sub">
+        <h2>Example: subqueries</h2>
+        <p><strong>Goal:</strong> employees whose <strong>current</strong> salary is above the company-wide current average. The inner query is a natural place to type or paste after the builder gives you the outer joins.</p>
+        <pre data-sql-line-numbers><code>SELECT
+    e.first_name,
+    e.last_name,
+    s.salary
+FROM
+         employees.employees AS e
+    INNER JOIN employees.salaries AS s ON s.emp_no = e.emp_no
+    AND s.to_date = '9999-01-01'
+WHERE
+    s.salary &gt; (
+        SELECT AVG(s2.salary)
+        FROM employees.salaries AS s2
+        WHERE s2.to_date = '9999-01-01'
+    )
+ORDER BY
+    s.salary DESC
+LIMIT   25;</code></pre>
+        <p style="font-size:0.9rem;color:var(--text-muted);">The builder accelerates the outer shape (tables + joins + column lists); nested scalar subqueries are still easiest to finish by hand or with AI assist — then validate in the editor.</p>
+      </section>
+
+      <section id="ex-advanced">
+        <h2>Advanced patterns: CTE, UNION, EXISTS + multi-join</h2>
+        <p>These patterns are <strong>real MySQL</strong> you can demo on the <code>employees</code> database. There is <strong>no single-letter shortcut for <code>WITH</code> or <code>UNION</code></strong>: type the keywords, use the builder for each inner <code>SELECT</code> (tables + joins + column drags), then glue clauses together.</p>
+
+        <h3>Example A — CTE + join + filter (salary above department average)</h3>
+        <p><strong>Idea:</strong> first compute each department’s average current salary in a named result (<code>dept_avg</code>), then join back to employees and current salaries and keep only rows above that average. Good demo of readability: the CTE names the intermediate story.</p>
+        <p><strong>Builder workflow:</strong> type <code>WITH dept_avg AS (</code> and newline; inside the CTE, use <span class="kbd">s</span> + table drags to build the inner <code>SELECT … JOIN … GROUP BY</code>; close the CTE, start the outer <span class="kbd">s</span> + drags for <code>employees</code>, <code>salaries</code>, <code>dept_emp</code>, <code>departments</code>, then join to <code>dept_avg</code>.</p>
+        <pre data-sql-line-numbers><code>WITH dept_avg AS (
+    SELECT
+        de.dept_no,
+        ROUND(AVG(s.salary), 2) AS avg_salary
+    FROM
+         employees.salaries AS s
+    INNER JOIN employees.employees AS e ON e.emp_no = s.emp_no
+    INNER JOIN employees.dept_emp AS de ON de.emp_no = e.emp_no
+    AND de.to_date = '9999-01-01'
+    WHERE
+        s.to_date = '9999-01-01'
+    GROUP BY
+        de.dept_no
+)
+SELECT
+    e.emp_no,
+    e.first_name,
+    e.last_name,
+    d.dept_name,
+    s.salary,
+    da.avg_salary
+FROM
+         employees.employees AS e
+    INNER JOIN employees.salaries AS s ON s.emp_no = e.emp_no
+    AND s.to_date = '9999-01-01'
+    INNER JOIN employees.dept_emp AS de ON de.emp_no = e.emp_no
+    AND de.to_date = '9999-01-01'
+    INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+    INNER JOIN dept_avg AS da ON da.dept_no = de.dept_no
+WHERE
+    s.salary &gt; da.avg_salary
+ORDER BY
+    s.salary DESC
+LIMIT   40;</code></pre>
+
+        <h3>Example B — UNION (shape two cohorts with the same columns)</h3>
+        <p><strong>Idea:</strong> first branch returns a few arbitrary employees as a cohort label <code>'sample_staff'</code>; second branch returns current department managers with label <code>'manager'</code>. Both branches must return the same column count and compatible types.</p>
+        <p><strong>Builder workflow:</strong> build the first <code>SELECT</code> entirely with drags; type <code>UNION</code> on a new line; build the second <code>SELECT</code> with <span class="kbd">lj</span> / table drags from <code>dept_manager</code> to <code>employees</code>.</p>
+        <pre data-sql-line-numbers><code>SELECT
+    'sample_staff' AS cohort,
+    first_name,
+    last_name
+FROM
+    employees.employees
+WHERE
+    gender = 'M'
+LIMIT   5
+UNION
+SELECT
+    'manager' AS cohort,
+    e.first_name,
+    e.last_name
+FROM
+         employees.dept_manager AS dm
+    INNER JOIN employees.employees AS e ON e.emp_no = dm.emp_no
+WHERE
+    dm.to_date = '9999-01-01'
+LIMIT   5;</code></pre>
+
+        <h3>Example C — UNION ALL + derived counts (avoid deduplication cost)</h3>
+        <p><strong>Idea:</strong> stack two counting queries when you know rows cannot overlap—<code>UNION ALL</code> is cheaper than <code>UNION</code> because it does not deduplicate.</p>
+        <pre data-sql-line-numbers><code>SELECT
+    'titles_rows' AS metric,
+    COUNT(*) AS n
+FROM
+    employees.titles
+WHERE
+    to_date = '9999-01-01'
+UNION ALL
+SELECT
+    'salaries_rows',
+    COUNT(*)
+FROM
+    employees.salaries
+WHERE
+    to_date = '9999-01-01';</code></pre>
+
+        <h3>Example D — EXISTS correlated subquery (any current “Engineer” title)</h3>
+        <p><strong>Idea:</strong> keep employees who have <strong>at least one</strong> current title row matching a pattern. <code>EXISTS</code> stops at first match—good teaching vs <code>IN (SELECT …)</code>.</p>
+        <p><strong>Builder workflow:</strong> type <span class="kbd">s</span> → drag <code>employees</code>; type <code>WHERE EXISTS (</code> and newline; inside, <span class="kbd">s</span> + drag <code>titles</code> and add correlation <code>t.emp_no = e.emp_no</code> by hand or column drag in <code>WHERE</code>.</p>
+        <pre data-sql-line-numbers><code>SELECT
+    e.emp_no,
+    e.first_name,
+    e.last_name
+FROM
+    employees.employees AS e
+WHERE
+    EXISTS (
+        SELECT 1
+        FROM employees.titles AS t
+        WHERE t.emp_no = e.emp_no
+            AND t.to_date = '9999-01-01'
+            AND t.title LIKE '%Engineer%'
+    )
+ORDER BY
+    e.emp_no
+LIMIT   50;</code></pre>
+
+        <h3>Example E — Join + scalar subquery + CTE in one report (heavy demo)</h3>
+        <p><strong>Idea:</strong> CTE materializes “current salary per employee”; outer query joins department and compares each salary to a scalar subquery (company max). Mixes everything in one script for advanced audiences.</p>
+        <pre data-sql-line-numbers><code>WITH cur_sal AS (
+    SELECT
+        emp_no,
+        salary
+    FROM
+         employees.salaries
+    WHERE
+        to_date = '9999-01-01'
+)
+SELECT
+    d.dept_name,
+    e.last_name,
+    cs.salary,
+    ROUND(100 * cs.salary / (SELECT MAX(salary) FROM cur_sal), 2) AS pct_of_company_max
+FROM
+         cur_sal AS cs
+    INNER JOIN employees.employees AS e ON e.emp_no = cs.emp_no
+    INNER JOIN employees.dept_emp AS de ON de.emp_no = e.emp_no
+    AND de.to_date = '9999-01-01'
+    INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+ORDER BY
+    pct_of_company_max DESC,
+    d.dept_name,
+    e.last_name
+LIMIT   30;</code></pre>
+      </section>
+
+      <section id="employees">
+        <h2>Sample database for practice</h2>
+        <p>The official <strong>employees</strong> database (Giuseppe Maxia / datacharmer <code>test_db</code>) is ideal for demos: large <code>salaries</code> and <code>titles</code> history, <code>dept_emp</code> bridge, and small dimension tables.</p>
+        <p>Restore from the repo script (MySQL 9.x client needs <code>--commands</code>; the script handles that):</p>
+        <pre class="no-sql-copy"><code>cd /path/to/SKYLINEMYSQL
+./scripts/restore_mysql_employees_sample.sh</code></pre>
+        <p>Verify row scale (expect on the order of <strong>300,000</strong> rows):</p>
+        <pre data-sql-line-numbers><code>SELECT
+    COUNT(*) AS employee_rows
+FROM
+    employees.employees;</code></pre>
+      </section>
+
+      <section id="checklist">
+        <h2>Day-of demo checklist</h2>
+        <ol>
+          <li>
+            Confirm connection and database — lightweight probe, then row count on <code>employees</code>:
+            <pre data-sql-line-numbers><code>SELECT   1;
+
+SELECT
+    COUNT(*) AS employee_rows
+FROM
+    employees.employees;</code></pre>
+          </li>
+          <li>Expand the tree so the audience sees real table breadth.</li>
+          <li>Flash the <a href="#shortcuts">shortcut reference</a> so people remember <span class="kbd">s</span> / <span class="kbd">lj</span> / <span class="kbd">w</span> as vocabulary.</li>
+          <li>Show one <strong>simple SELECT</strong> built by drag, then one <strong>multi-join</strong> example.</li>
+          <li>Optional power moment: open <a href="#ex-advanced">CTE / UNION</a> and narrate “keywords typed, shapes built by drag.”</li>
+          <li>If a JOIN disambiguation dialog appears, explain it as a safety feature (explicit choice over a silent wrong join).</li>
+          <li>Close with “builder for speed + schema truth; AI when the requirement is still words, not tables.”</li>
+        </ol>
+      </section>
+
+      <section id="qo-overview">
+        <h2>Query Optimizer — overview</h2>
+        <p class="subtitle" style="margin-bottom:1rem;">
+          Use the <strong>Query Optimizer Workbench</strong> when you already have executable SQL and need <code>EXPLAIN</code>-backed diagnosis, heuristic rewrites,
+          actionable <strong>index DDL</strong> (primary vs optional alternatives), an easy-to-read <strong>algorithm trace</strong> for TT/index decisions,
+          and optional <strong>before/after validation</strong> after creating an index — all scoped to your live MySQL connection.
+        </p>
+        <div class="callout">
+          <strong>Full documentation.</strong> Feature-by-feature reference (opening paths, toolbar, TT selection, traces, DDL flow, batch optimize, settings) lives in
+          <a href="query-optimizer-product-guide.html">query-optimizer-product-guide.html</a> beside this guide — open it directly or from the sidebar under <strong>Query Optimizer</strong>.
+        </div>
+        <h3>Open it from VS Code</h3>
+        <ul>
+          <li><strong>Command Palette</strong> → <em>Optimize Query (Visual Explain)</em> — analyzes the current SQL editor buffer or selection.</li>
+          <li><strong>Command Palette</strong> → variations for <em>Optimize All Queries with Index Recommendations</em> (plus a debug flavor for verbose pipelines).</li>
+          <li><strong>Query result panel</strong> and <strong>Slow Query / performance</strong> flows can pass SQL into the same workbench when MySQL is the active connection.</li>
+        </ul>
+        <h3>What you get in the panel</h3>
+        <ul>
+          <li><strong>Overview</strong> — recommendations block with impact/confidence and optional vs primary indexes; rewriter tips inline where relevant.</li>
+          <li><strong>Explain</strong> — traditional rows; switches to visual, TREE, or JSON variants from the toolbar.</li>
+          <li><strong>Rewrites / Tips</strong> — dedicated tab for query-level suggestions.</li>
+          <li><strong>Trace</strong> — human-readable breakdown (clauses → join edges → TT → scoring → picks). Use <strong>Refresh Trace</strong> after Analyze.</li>
+          <li><strong>Create Index / Copy DDL</strong> — isolated DDL execution, optional profiler-backed validation paths, bulk create with unchecked optional indexes by default.</li>
+          <li><strong>Optional AI recommendations</strong> — where enabled, alternate index ideas alongside the rule-based engine.</li>
+        </ul>
+        <p class="table-caption">Settings worth knowing</p>
+        <table>
+          <thead>
+            <tr><th>Setting</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>skyline-mysql.queryOptimizerVerboseIndexLog</code></td>
+              <td>Full index pipeline dumps to the MySQL output channel after Analyze.</td>
+            </tr>
+            <tr>
+              <td><code>skyline-mysql.queryOptimizer.disableVisualExplain</code></td>
+              <td>Turn off visual explain if rendering is unstable.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:0.9rem;color:var(--text-muted);margin-top:0.85rem;"><strong>Premium:</strong> workbench entry is guarded by entitlement <code>qo</code> in the extension; parity with other premium SQL features.</p>
+      </section>
+      <section id="auto-start">
+
+        <h2>SQL autocomplete — overview</h2>
+        <p class="subtitle">
+          This page documents <strong>IntelliSense-style SQL completions</strong> in SkyLineMySQL for <code>.sql</code> files in VS Code: tables, columns, JOIN <code>ON</code> lines, favorites, diagnostics, and a large MySQL command library — all tied to your <strong>live connection metadata</strong>.
+          It lives in <strong>this same guide</strong> as the <a href="#what">Query Builder</a> chapter above, which focuses on drag-and-drop and typed shortcuts before a drop.
+        </p>
+        <div class="callout">
+          <strong>Who this is for.</strong>
+          Sales, solutions engineers, power users, and new customers who need a clear story: what shows up in the completion list, why, and how it stays accurate to the database you are connected to.
+        </div>
+      </section>
+
+      <section id="auto-prereq">
+        <h2>Connection, active database, and per-file scope</h2>
+        <p>
+          Every completion list is built from <strong>metadata for the current MySQL session context</strong>: the connection attached to your SQL editor tab and the database that tab is scoped to (tree “Active” badge and per-file database selection should agree).
+          If you connect successfully but the wrong schema is selected, you will still see <em>valid</em> suggestions — for the wrong catalog — which feels like a bug even though the pipeline is behaving correctly.
+        </p>
+        <ul>
+          <li><strong>Fix first:</strong> pick the intended database in the tree (or per-file selector) so object names match what you expect in <code>FROM</code> / <code>JOIN</code>.</li>
+          <li><strong>Offline / no connection:</strong> schema-heavy rows (tables, columns, JOIN catalog) shrink or disappear; keyword-only rows may still appear.</li>
+          <li><strong>Large schemas:</strong> some join-discovery paths cap how many tables are scanned so the editor stays responsive; prefer qualifying with known tables when demoing huge catalogs.</li>
+        </ul>
+      </section>
+
+      <section id="auto-invoke">
+        <h2>How you invoke and filter completions</h2>
+        <p>
+          SkyLineMySQL registers a <strong>completion provider</strong> for SQL documents. VS Code merges the extension’s items with any built-in behavior according to your user/workspace settings (<strong>Quick Suggestions</strong>, <strong>suggest on trigger characters</strong>, delay, etc.).
+        </p>
+        <ul>
+          <li><strong>Implicit</strong> — keep typing; when the list opens, arrow keys and Enter accept a row.</li>
+          <li><strong>Explicit</strong> — <span class="kbd">Ctrl</span>+<span class="kbd">Space</span> (macOS may use <span class="kbd">⌃</span>+<span class="kbd">Space</span> or <span class="kbd">⌘</span>+<span class="kbd">Space</span> per your keymap) forces the widget at the caret.</li>
+          <li><strong>Filtering</strong> — additional characters refine the list; categories in the label/description help distinguish tables, columns, saved SQL, diagnostics, and keywords.</li>
+          <li><strong>Snippets</strong> — some accepts insert multi-line templates; use Tab to jump placeholders per normal VS Code snippet behavior.</li>
+          <li><strong>Inside comments</strong> — Skyline’s SQL completion provider returns <strong>no items</strong> when the caret is inside a block comment (<code>/* … */</code>), a <code>--</code> line comment, or a MySQL <code>#</code> line comment (string/backtick literals are respected). See <a href="sql-ai-writing-product-guide.html#whats-new">SQL with AI — product notes</a>.</li>
+        </ul>
+      </section>
+
+      <section id="auto-vs-builder">
+        <h2>Autocomplete vs Query Builder (same extension, different gestures)</h2>
+        <table>
+          <thead>
+            <tr><th>Topic</th><th>SQL autocomplete</th><th>Query Builder (drag + shortcuts)</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Primary gesture</td>
+              <td>Type; pick from the completion list.</td>
+              <td>Type optional shortcut token; <strong>drag</strong> table/column from the tree.</td>
+            </tr>
+            <tr>
+              <td>Best for</td>
+              <td>Fine names, JOIN <code>ON</code> lines, library SQL, keywords.</td>
+              <td>Large statement skeletons, clause placement, multi-table inserts from schema.</td>
+            </tr>
+            <tr>
+              <td>Overlap</td>
+              <td>Shortcut <em>tokens</em> can appear as completion hints.</td>
+              <td>Same tokens are meant to be followed by a drag for the full template.</td>
+            </tr>
+            <tr>
+              <td>Teach together</td>
+              <td colspan="2">Narrate: “tree for truth of shape; list for speed of spelling and predicates.” Point to <a href="#how">first-session steps</a> for the builder.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="auto-chain">
+        <h2>Completion provider chain (order matters)</h2>
+        <p>
+          The extension walks an <strong>ordered chain</strong> of small providers. Earlier chains run first; their items are merged with later ones. Specialized rows (joins, favorites) can therefore appear before generic schema rows. Certain library categories are <strong>deduplicated by display name</strong> so two sources do not spam the same title.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Order</th><th>Source (product)</th><th>Role</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Drag-drop shortcut hints</td><td>Reminds typable tokens that pair with tree drags.</td></tr>
+              <tr><td>2</td><td>Table alias suggest</td><td><code>AS alias</code> after <code>FROM</code>/<code>JOIN</code> table.</td></tr>
+              <tr><td>3</td><td>JOIN patterns / <code>ON</code></td><td>Cached patterns, FK/catalog edges, matcher — flagship feature.</td></tr>
+              <tr><td>4</td><td>Favorites</td><td>User-starred saved SQL.</td></tr>
+              <tr><td>5</td><td>Frequent / recent</td><td>Executed-query reuse.</td></tr>
+              <tr><td>6</td><td>Diagnostic queries</td><td>Curated health / performance templates.</td></tr>
+              <tr><td>7</td><td>MySQL commands</td><td>Pre-built catalog snippets.</td></tr>
+              <tr><td>8</td><td>Favorite commands library</td><td>800+ version-aware entries.</td></tr>
+              <tr><td>9</td><td>INSERT columns</td><td>Column names inside <code>INSERT INTO … (</code>.</td></tr>
+              <tr><td>10+</td><td>DDL, DML, tables, alias columns, join-aware columns, columns, detector, keywords</td><td>Classic schema + SQL keyword coverage.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:0.88rem;color:var(--text-muted);">Implementation reference for engineering: <code>src/provider/complete/completionProvider.ts</code> (<code>completeChain()</code>).</p>
+      </section>
+
+      <section id="auto-algorithm">
+        <h2>How the completion list is built (merge algorithm)</h2>
+        <p>
+          When you open the suggest widget, SkyLineMySQL does not run a single monolithic query against the schema. It runs a <strong>pipeline</strong>:
+          ordered providers produce items, then the extension <strong>merges, deduplicates, sorts, and re-ranks</strong> so the list stays fast and readable.
+          The code path is <code>CompletionProvider.provideCompletionItems</code> in <code>src/provider/complete/completionProvider.ts</code>.
+        </p>
+
+        <h3 id="auto-algo-step1">1. Run each chain in order</h3>
+        <p>Chains run sequentially (see <a href="#auto-chain">provider chain</a>). Each chain returns zero or more <code>CompletionItem</code>s. A chain may set <strong>stop</strong> so later chains are skipped for that request (for example JOIN <code>ON</code> body mode returns condition-only rows and stops).</p>
+        <p>Actual order in code: drag-drop shortcut hints → table-alias suggestions → <strong>JOIN / <code>ON</code></strong> → favorites → frequent/recent → diagnostics → MySQL commands → favorite-command library → INSERT columns → DDL → DML → tables → alias columns → join-aware columns → plain columns → table detector → keywords.</p>
+
+        <h3 id="auto-algo-step2">2. Split “library-like” vs schema-like items</h3>
+        <p>Items from these chains are collected into a <strong>deduplicable</strong> bucket: favorites, frequent/recent reuse, diagnostic templates, MySQL commands, and the large favorite-command library. Items from the other chains (JOIN patterns, aliases, DDL/DML, tables, columns, keywords, …) go into a <strong>non-deduplicated</strong> bucket so you still get many distinct table and column names even when labels look similar.</p>
+
+        <h3 id="auto-algo-step3">3. Deduplicate by display name + category priority</h3>
+        <p>For deduplicable rows only, the extension groups by a normalized <strong>display label</strong> (leading emoji / icon prefixes are stripped). If two rows share the same display title, <strong>one wins</strong> based on category priority — lower number beats higher number. This is why a starred <strong>User Favorite</strong> can replace a generic library row with the same visible title.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Priority (low = wins)</th><th>Category (examples)</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><code>User Favorite</code> / <code>⭐ User Favorite</code></td></tr>
+              <tr><td>2–3</td><td><code>Frequent</code> / <code>⚡ Frequent</code>, then <code>Recent</code> / <code>🕐 Recent</code></td></tr>
+              <tr><td>4–5</td><td>Library / Performance / Schema / Locks / … (curated buckets)</td></tr>
+              <tr><td>10</td><td>Broad “All” / catch-all library categories</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="auto-algo-step4">4. Sort, merge, then clause-boost</h3>
+        <p>Deduplicated items are sorted by each item’s <code>sortText</code> (favorites and reuse queries set explicit prefixes so your own queries float predictably). Then the list becomes: <strong>sorted deduplicated library-like rows first</strong>, followed by <strong>all schema / JOIN / keyword rows</strong>.</p>
+        <p>Finally, <strong>clause-aware boosting</strong> inspects where the caret sits (for example <code>FROM</code> / <code>JOIN</code> / <code>INTO</code> vs <code>SELECT</code> / <code>WHERE</code> / <code>ON</code>): table-shaped completions are promoted in table contexts; column-shaped completions are promoted in column contexts.</p>
+
+        <h3 id="auto-algo-step5">5. Extra ordering in pure “table list” spots</h3>
+        <p>When the caret is in a spot that is clearly choosing a <strong>relation target</strong> (after <code>FROM</code> / <code>JOIN</code> / <code>INTO</code>, etc.), table- and column-like items are sorted together at the <strong>head</strong> of the list; other completion kinds are pushed to a <strong>tail</strong> band so the widget reads like a schema picker first.</p>
+      </section>
+
+      <section id="auto-shortcut-hints">
+        <h2>Drag-drop &amp; shortcut hints in the list</h2>
+        <p>
+          Tokens such as <code>IN</code>, <code>SE</code>, <code>LJ</code>, or spelled-out join words can appear as completion items. They exist to reinforce the <strong>shortcut vocabulary</strong> documented in the <a href="#shortcuts">Query Builder shortcuts</a> table.
+        </p>
+        <p>
+          Accepting a hint <strong>only inserts text</strong>. The full builder flow still expects a <strong>drag from the connection tree</strong> when the shortcut system was designed around drag. Use this section in demos to bridge “what can I type?” and “what do I drag next?”.
+        </p>
+      </section>
+
+      <section id="auto-table-aliases">
+        <h2>Table alias suggestions</h2>
+        <p>
+          After <code>FROM</code> or <code>JOIN</code> and a concrete table reference, the extension proposes readable <code>AS &lt;alias&gt;</code> forms. Aliases try to avoid collisions with identifiers already present in the statement.
+        </p>
+        <p>
+          <strong>Demo tip:</strong> accept an alias early in a long reporting query so later column completions and JOIN <code>ON</code> lines stay short and human-readable.
+        </p>
+      </section>
+
+      <section id="auto-join-on">
+        <h2>JOIN targets &amp; <code>ON</code> conditions (deep dive)</h2>
+        <p>
+          This is SkyLineMySQL’s most differentiated autocomplete surface. The caret’s position in the partial statement selects among several <strong>modes</strong>:
+        </p>
+        <ul>
+          <li><strong>Pending JOIN</strong> — you are mid-keyword or choosing the next table; accepts can expand to a full <code>[INNER|LEFT|…] JOIN qualified.table ON …</code> snippet.</li>
+          <li><strong>After joined table, before <code>ON</code></strong> — inserts <code>ON …</code> plus a condition.</li>
+          <li><strong>Inside <code>ON</code> body</strong> — inserts only the predicate (no duplicate <code>ON</code> keyword).</li>
+        </ul>
+        <p><strong>Evidence blended into each list:</strong></p>
+        <ul>
+          <li><strong>Learned / cached patterns</strong> — frequency counts; refreshed when the database tree is refreshed so merged FK snapshots stay current.</li>
+          <li><strong>Schema catalog</strong> — edges from <code>INFORMATION_SCHEMA</code> (foreign keys, same-name column bridges, learned merges).</li>
+          <li><strong>Matcher</strong> — column-metadata comparisons with confidence and explanation text; very low scores are dropped to reduce false joins.</li>
+        </ul>
+        <p>
+          On sample databases such as <code>employees</code>, optional <strong>bridge</strong> paths (e.g. via <code>dept_emp</code>) may appear when settings allow — good moment to explain “multiple valid joins; pick the business truth.” Practice SQL shapes live in <a href="#ex-joins">Complex joins</a>.
+        </p>
+
+        <h3 id="auto-join-algorithm">Algorithm (how <code>ON</code> lines are generated)</h3>
+        <p>Implementation lives in <code>src/provider/complete/chain/joinPatternChain.ts</code>, backed by <code>JoinPatternCache</code> (<code>src/service/dragDrop/joinPatternCache.ts</code>), <code>JoinSchemaCatalogService</code>, and <code>JoinConditionMatcher</code>. At a high level:</p>
+        <ol>
+          <li><strong>Detect context from tokens + caret</strong> — The chain classifies the request as: partial JOIN keyword (e.g. you typed <code>lef</code>), “pick next table after JOIN”, “after table, before <code>ON</code>”, or “already inside <code>ON</code>”. <code>NATURAL</code> / <code>CROSS</code> paths skip <code>ON</code> suggestions because they do not use an <code>ON</code> clause.</li>
+          <li><strong>Resolve tables in scope</strong> — Tables already referenced in the <code>FROM</code>/<code>JOIN</code> clause (with aliases) constrain which new table or <code>ON</code> predicate makes sense.</li>
+          <li><strong>Pull candidate edges</strong> — (a) <strong>Cached join patterns</strong> persist successful joins (FK-derived, user-confirmed, or learned) with usage counts and confidence; (b) the <strong>schema catalog</strong> proposes FK and name-bridge edges; (c) the <strong>matcher</strong> compares column metadata between tables and assigns a confidence score.</li>
+          <li><strong>Threshold and cap</strong> — Matcher rows below about <strong>24%</strong> confidence are dropped. When you are still picking a table right after <code>JOIN</code>, the product caps how many tables it scans and how many items it returns (keeps the editor responsive on huge schemas).</li>
+          <li><strong>Shape the insert</strong> — Depending on mode, accepting an item may replace a partial join keyword and insert a full <code>… JOIN … ON …</code> line, insert only <code>ON …</code> after the table, or insert only the <strong>predicate</strong> after you have already typed <code>ON</code>. Pending-join completions may append <code>AS &lt;alias&gt;</code> when the implementation chooses a short alias that does not collide with names already in the statement.</li>
+          <li><strong>Stop after rich <code>ON</code> body</strong> — When you are inside the <code>ON</code> body and the chain returns condition-only items, the provider can <strong>stop the chain early</strong> so generic keyword noise does not drown the join UI.</li>
+        </ol>
+        <p><strong>employees sample DB:</strong> an optional <code>dept_emp</code> <code>IN</code>/<code>EXISTS</code> “bridge” between <code>employees</code> and <code>departments</code> is <strong>off by default</strong>; enable with workspace setting <code>skyline-mysql.joinCompletions.showDeptEmpSubqueryBridge</code>. For deep diagnostics of join suggestions, developers can set <code>skyline-mysql.debugJoinPatternCompletions</code> to <code>true</code> (logs to the Debug Console in F5).</p>
+      </section>
+
+      <section id="auto-favorites-recent">
+        <h2>Favorites &amp; frequent / recent queries</h2>
+        <p>
+          <strong>Favorites</strong> surface starred statements for one-click reuse — ideal for standard runbooks. <strong>Frequent</strong> and <strong>recent</strong> buckets help operators return to “the query I always run after deploy.” Both are first-class inputs to the <a href="#auto-algorithm">merge / dedupe pipeline</a>.
+        </p>
+        <p>
+          These sources participate in <strong>deduplication</strong> against other library-like rows so identical titles do not repeat. Teach customers that starring a canonical query makes it dominate duplicates in the list (category priority favors <code>⭐ User Favorite</code>).
+        </p>
+
+        <h3 id="auto-favorites-detail">Favorites — what you see and how matching works</h3>
+        <p>Code: <code>src/provider/complete/chain/favoritesChain.ts</code> plus <code>FavoritesManager</code> (<code>src/service/common/favoritesManager.ts</code>).</p>
+        <ul>
+          <li><strong>When suggestions appear</strong> — Mostly at the <strong>start of a statement</strong> (blank line, beginning of line, right after <code>;</code>), or while you are still in the first few tokens / early SQL keywords (so typing <code>show pro</code> can surface a “SHOW PROCESSLIST” favorite). Favorites are <strong>suppressed</strong> in spots that are clearly choosing a table after <code>FROM</code>/<code>JOIN</code>/<code>INTO</code> so they do not collide with schema picks.</li>
+          <li><strong>Scope</strong> — Favorites are loaded for the <strong>current connection id</strong> and can include <strong>global</strong> favorites. Pre-seeded global library commands with <strong>zero usage</strong> are intentionally <strong>hidden from autocomplete</strong> (they remain available in the Favorites UI) to reduce list noise.</li>
+          <li><strong>Labels in the widget</strong> — Each row shows the favorite’s <strong>primary name</strong>. The description column reads <code>⭐ User Favorite</code> for items you actually use (or any non-global favorite), and <code>★ Library</code> for catalog-backed entries that are still eligible.</li>
+          <li><strong>Matching</strong> — Filtering is case-insensitive and considers: <strong>primary name</strong>, all <strong>shortcut strings</strong> you configured, and (for normal SQL, not templated bodies) a prefix of the <strong>SQL text</strong> itself — so fragments of the statement can surface the right row.</li>
+          <li><strong>Accept behavior</strong> — Items are usually <strong>snippets</strong>. When a replace range is computed, accepting a favorite can <strong>replace the whole typed prefix on the line</strong> with the full stored SQL in one action.</li>
+          <li><strong>Ordering</strong> — <code>sortText</code> tiers prefer user favorites, then well-used library items, then others. Queries that contain <code>{{ … }}</code> template placeholders are <strong>deprioritized</strong> (and their filter text avoids matching bare <code>SELECT</code> so they do not flood the list).</li>
+          <li><strong>Documentation popup</strong> — Hover/detail shows optional description, shortcut list, usage count when tracked, and a fenced SQL preview of the stored text.</li>
+        </ul>
+
+        <h3 id="auto-reuse-queries">Reusing old queries (frequent &amp; recent)</h3>
+        <p>Code: <code>src/provider/complete/chain/frequentQueriesChain.ts</code> and <code>queryTemplateManager</code> (<code>src/service/common/queryTemplateManager.ts</code>). Execution history is tracked per <strong>connection id</strong> so reuse stays tied to the profile you are working against.</p>
+        <ul>
+          <li><strong>Automatic, not manual</strong> — Unlike favorites, you do not star these. The extension records templates from <strong>queries you actually run</strong> (execution count and last-run time).</li>
+          <li><strong>What gets offered</strong> — Up to <strong>15</strong> top templates by frequency (minimum one execution), excluding anything already marked as a favorite; plus up to <strong>5 recent</strong> templates that are not in that frequent set. The UI then keeps at most <strong>10 frequent</strong> and <strong>5 recent</strong> completions after filtering to what matches what you typed.</li>
+          <li><strong>When suggestions appear</strong> — At statement start, after <code>;</code>, on an empty line, or while the statement still has <strong>few tokens</strong> (early <code>SELECT … FROM</code> typing). This keeps “whole query reuse” from interrupting mid-predicate editing.</li>
+          <li><strong>How filtering works</strong> — The chain compares your current partial SQL (lower-cased) to each template: it keeps rows whose saved SQL <strong>starts with</strong> what you typed, or whose text <strong>contains</strong> the current word token. That lets a half-typed <code>SELECT * FROM employees</code> narrow the list to templates with the same opening.</li>
+          <li><strong>Labels</strong> — Rows show a short label derived from <strong>query type</strong> and detected <strong>tables</strong> (for example <code>SELECT employees, departments</code>). The description shows <code>⚡ Frequent (Nx)</code> or <code>🕐 Recent (Mx)</code> with execution count.</li>
+          <li><strong>Detail popup</strong> — Markdown documentation lists execution count, last-run timestamp, and the full SQL body so operators can confirm before accepting.</li>
+          <li><strong>Accept</strong> — Inserts the <strong>full stored SQL</strong> for that template. Product metering tags this path separately from generic autocomplete so “reuse” can be measured honestly.</li>
+        </ul>
+      </section>
+
+      <section id="auto-diagnostics">
+        <h2>Built-in diagnostic queries</h2>
+        <p>
+          A curated catalog of <strong>diagnostic</strong> SQL (performance, locks, replication, space, etc.) ships with the extension. Each item is labeled so it is obvious this is template SQL, not arbitrary text generation.
+        </p>
+        <p>
+          Always read cost and scope before running on production. Position diagnostics as “editable templates — start safe, add <code>WHERE</code> limits.”
+        </p>
+      </section>
+
+      <section id="auto-mysql-library">
+        <h2>MySQL command library (800+)</h2>
+        <p>
+          A searchable, <strong>version-filtered</strong> library of MySQL/MariaDB statements spans maintenance, users, optimizer, replication, and more. Categories (performance, schema, …) align with how DBAs browse problems.
+        </p>
+        <p>
+          This is not LLM output — it is deterministic text vetted for structure. Pair with your story on compliance: “no cloud model required for these snippets.”
+        </p>
+      </section>
+
+      <section id="auto-insert-columns">
+        <h2><code>INSERT</code> column lists</h2>
+        <p>
+          When the parser recognizes <code>INSERT INTO … (</code>, completions offer <strong>real column names</strong> for that table from metadata. This reduces typos in migrations and seed scripts.
+        </p>
+      </section>
+
+      <section id="auto-schema-ddl">
+        <h2>Schema objects, DDL/DML, join-aware columns, keywords</h2>
+        <p>The baseline layer covers everyday editing:</p>
+        <ul>
+          <li><strong>Tables &amp; views</strong> after relation keywords.</li>
+          <li><strong>Columns</strong> with qualification when the statement scope allows.</li>
+          <li><strong>Join-aware ranking</strong> — when multiple tables are in play, column ordering favors likely matches for the current clause.</li>
+          <li><strong>DDL/DML fragments</strong> appropriate to <code>ALTER</code>, <code>CREATE</code>, <code>UPDATE</code>, etc.</li>
+          <li><strong>SQL keywords</strong> for finishing syntax (<code>WHERE</code>, <code>GROUP BY</code>, <code>LIMIT</code>, …).</li>
+        </ul>
+      </section>
+
+      <section id="auto-list-ordering">
+        <h2>List ordering &amp; clause-aware boosting</h2>
+        <p>
+          In <strong>table clause</strong> positions (<code>FROM</code>, <code>JOIN</code>, <code>INTO</code> targets), table-like items are boosted ahead of long-tail text. In <strong>column clause</strong> positions (<code>SELECT</code>, <code>WHERE</code>, <code>ON</code>, <code>ORDER BY</code>, …), column-like items are boosted.
+        </p>
+        <p>
+          If a user asks “why isn’t my table first?”, verify they are not inside a string/comment, verify active DB, then explain dedupe + stable sort keys for library rows.
+        </p>
+      </section>
+
+      <section id="auto-accept-telemetry">
+        <h2>Accepting a suggestion &amp; product telemetry</h2>
+        <p>
+          When you commit a completion, the inserted text may be a plain token or a multi-line snippet. For product analytics (when enabled), Skyline records <strong>which class</strong> of completion fired — e.g. JOIN <code>ON</code> accepts are separated from generic SQL autocomplete so “time saved” modeling stays honest.
+        </p>
+        <p>
+          <strong>Privacy:</strong> these counters do not include your SQL buffer contents as part of that usage event. Enterprise customers can disable usage telemetry per Skyline policy.
+        </p>
+      </section>
+
+      <section id="auto-troubleshoot">
+        <h2>Troubleshooting (talk track)</h2>
+        <ul>
+          <li><strong>Empty or tiny list</strong> — check connection; confirm file language mode is SQL; try explicit <span class="kbd">Ctrl</span>+<span class="kbd">Space</span>.</li>
+          <li><strong>Wrong tables</strong> — wrong active database or stale tree; refresh tree / reselect DB.</li>
+          <li><strong>No JOIN rows</strong> — metadata not loaded, catalog disabled, or caret not in a JOIN context; move caret after <code>JOIN</code> / table token.</li>
+          <li><strong>Duplicates disappeared</strong> — dedupe by design for library categories.</li>
+          <li><strong>No favorites in autocomplete</strong> — you may be mid-statement (not at line/statement start), or in a FROM/JOIN table spot where favorites are suppressed; or the row is a pre-seeded global command with zero usage (open the Favorites UI instead).</li>
+          <li><strong>No frequent/recent rows</strong> — nothing recorded yet for this connection, or you are past the first few tokens of the statement; run a query once, then invoke completions near the start of the next statement.</li>
+        </ul>
+      </section>
+
+      
+
+      <footer style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-size:0.85rem;color:var(--text-muted);">
+        SkyLineMySQL product guide — Query Builder + SQL with AI + Query Optimizer + SQL autocomplete · Main file: <code>prod-document/skyline-product-guide.html</code> · Optimizer companion: <a href="query-optimizer-product-guide.html">query-optimizer-product-guide.html</a> · Premium flags (e.g. <code>qb</code>, <code>qo</code>) apply per entitlements.
+      </footer>
+
+    </main>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js" crossorigin="anonymous"></script>
+  <script>
+    (function () {
+      var sidebar = document.getElementById("sidebar");
+      var toggle = document.getElementById("nav-toggle");
+      var backdrop = document.getElementById("nav-backdrop");
+      var links = document.querySelectorAll(".tree a[href^='#']");
+
+      function closeNav() {
+        sidebar.classList.remove("open");
+        backdrop.classList.remove("show");
+        if (toggle) toggle.setAttribute("aria-expanded", "false");
+      }
+      function openNav() {
+        sidebar.classList.add("open");
+        backdrop.classList.add("show");
+        if (toggle) toggle.setAttribute("aria-expanded", "true");
+      }
+
+      if (toggle) {
+        toggle.addEventListener("click", function () {
+          if (sidebar.classList.contains("open")) closeNav();
+          else openNav();
+        });
+      }
+      backdrop.addEventListener("click", closeNav);
+
+      links.forEach(function (a) {
+        a.addEventListener("click", function () {
+          if (window.matchMedia("(max-width: 960px)").matches) closeNav();
+        });
+      });
+
+      var ids = [];
+      links.forEach(function (a) {
+        var id = a.getAttribute("href").slice(1);
+        if (id) ids.push(id);
+      });
+
+      function setActive() {
+        var threshold = 100;
+        var current = ids[0];
+        ids.forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el && el.getBoundingClientRect().top <= threshold) current = id;
+        });
+        links.forEach(function (a) {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + current);
+        });
+      }
+
+      window.addEventListener("scroll", setActive, { passive: true });
+      setActive();
+
+      var COPY_ICON_SVG =
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+        '<rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.75"/>' +
+        '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>' +
+        "</svg>";
+      var CHECK_ICON_SVG =
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+        '<path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+        "</svg>";
+
+      /* SQL blocks: chrome (</> SQL + icon copy), optional line numbers, syntax highlight */
+      document.querySelectorAll("main pre").forEach(function (pre) {
+        if (pre.classList.contains("no-sql-copy")) return;
+        if (pre.closest(".sql-pre-wrap")) return;
+        var code = pre.querySelector("code");
+        if (!code) return;
+
+        var wrap = document.createElement("div");
+        wrap.className = "sql-pre-wrap";
+        pre.parentNode.insertBefore(wrap, pre);
+
+        var chrome = document.createElement("div");
+        chrome.className = "sql-block-chrome";
+
+        var header = document.createElement("div");
+        header.className = "sql-block-header";
+        var label = document.createElement("span");
+        label.className = "sql-block-label";
+        label.innerHTML =
+          '<span class="sql-block-icon" aria-hidden="true">&lt;/&gt;</span> SQL';
+        header.appendChild(label);
+
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "sql-copy-btn";
+        btn.setAttribute("aria-label", "Copy SQL to clipboard");
+        btn.innerHTML = COPY_ICON_SVG;
+        header.appendChild(btn);
+
+        var body = document.createElement("div");
+        body.className = "sql-block-body";
+
+        if (pre.hasAttribute("data-sql-line-numbers")) {
+          body.classList.add("sql-pre--numbered");
+          var rawLines = (code.textContent || "").replace(/\r/g, "").split("\n");
+          var lc = rawLines.length;
+          if (lc > 0 && rawLines[lc - 1] === "") {
+            lc--;
+          }
+          var gutter = document.createElement("pre");
+          gutter.className = "sql-linenos-col";
+          gutter.setAttribute("aria-hidden", "true");
+          var nums = [];
+          for (var li = 1; li <= lc; li++) {
+            nums.push(String(li));
+          }
+          gutter.textContent = nums.join("\n");
+          body.appendChild(gutter);
+        }
+
+        body.appendChild(pre);
+        chrome.appendChild(header);
+        chrome.appendChild(body);
+        wrap.appendChild(chrome);
+
+        function getText() {
+          return (code.innerText || code.textContent || "").replace(/\u00a0/g, " ");
+        }
+
+        btn.addEventListener("click", function () {
+          var text = getText();
+          function ok() {
+            btn.innerHTML = CHECK_ICON_SVG;
+            btn.classList.add("is-done");
+            btn.setAttribute("aria-label", "SQL copied");
+            setTimeout(function () {
+              btn.innerHTML = COPY_ICON_SVG;
+              btn.classList.remove("is-done");
+              btn.setAttribute("aria-label", "Copy SQL to clipboard");
+            }, 2000);
+          }
+          function fail() {
+            btn.setAttribute("aria-label", "Copy failed — select SQL and use keyboard copy");
+            setTimeout(function () {
+              btn.setAttribute("aria-label", "Copy SQL to clipboard");
+            }, 2500);
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(ok).catch(fail);
+          } else {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+              if (document.execCommand("copy")) ok();
+              else fail();
+            } catch (e) {
+              fail();
+            }
+            document.body.removeChild(ta);
+          }
+        });
+      });
+
+      if (typeof hljs !== "undefined") {
+        document.querySelectorAll("main .sql-block-body pre code").forEach(function (code) {
+          try {
+            code.classList.add("language-sql");
+            hljs.highlightElement(code);
+          } catch (e) {
+            console.warn("[product-guide] SQL highlight failed", e);
+          }
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

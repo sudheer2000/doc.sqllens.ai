@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" role="img" aria-labelledby="qbTitle qbDesc">
+  <title id="qbTitle">Query Builder storyboard</title>
+  <desc id="qbDesc">Schema tree beside SQL editor beats: SELECT starter after drag, JOIN line with callout, subquery INNER JOIN inside IN ( ? ).</desc>
+  <defs>
+    <style type="text/css"><![CDATA[
+      .bg{fill:#f8fafc;}
+      .panel{fill:#f1f5f9;stroke:#cbd5e1;}
+      .muted{fill:#64748b;font-family:Segoe UI,system-ui,sans-serif;font-size:11px;}
+      .lbl{fill:#1e293b;font-family:Segoe UI,system-ui,sans-serif;font-size:11px;}
+      .mono{fill:#cbd5e1;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;}
+      .mono-hi{fill:#38bdf8;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;}
+      .mono-dim{fill:#475569;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;}
+      .tree-hi{fill:#dbeafe;stroke:#2563eb;}
+      .editor{fill:#0f172a;}
+      .edit-line{fill:#94a3b8;}
+      .hi-bg{fill:rgba(56,189,248,0.12);stroke:#0ea5e9;stroke-width:1;}
+      .callout{fill:rgba(219,234,254,0.95);stroke:#2563eb;stroke-width:1;}
+      .blink{opacity:1;animation:qbBlink 3s ease-in-out infinite;}
+      @keyframes qbBlink{0%,100%{opacity:1}45%,55%{opacity:0.4}}
+      @media (prefers-reduced-motion: reduce){.blink{animation:none}}
+    ]]></style>
+  </defs>
+  <rect class="bg" width="720" height="400"/>
+  <rect class="panel" x="10" y="48" width="200" height="336" rx="8"/>
+  <text class="lbl" x="22" y="72">MySQL ? employees</text>
+  <text class="muted" x="22" y="138">tables</text>
+  <rect x="18" y="158" width="184" height="30" rx="4" fill="#94a3b8" opacity="0.25" stroke="#94a3b8"/>
+  <rect class="tree-hi" x="18" y="194" width="184" height="30" rx="4"/>
+  <text class="lbl" x="28" y="214">employees</text>
+  <rect x="18" y="230" width="184" height="28" rx="4" fill="#e2e8f0" stroke="#cbd5e1"/>
+  <text class="muted" x="28" y="248">salaries</text>
+  <rect class="panel" x="224" y="48" width="486" height="336" rx="8"/>
+  <rect class="editor" x="232" y="60" width="470" height="316" rx="6"/>
+  <text class="edit-line" x="244" y="84">query.sql ? MySQL</text>
+  <text class="mono-dim" x="252" y="118">SELECT * FROM employees e</text>
+  <rect class="hi-bg blink" x="248" y="128" width="430" height="20" rx="3"/>
+  <text class="mono-hi" x="252" y="143">JOIN dept_emp de ON ?</text>
+  <text class="mono-dim" x="252" y="174">WHERE ? IN (</text>
+  <text class="mono-dim" x="266" y="194">SELECT ? FROM ? inner scope</text>
+  <rect class="hi-bg blink" x="262" y="232" width="360" height="20" rx="3" opacity="0.92"/>
+  <text class="mono-hi" x="270" y="247">JOIN ? ON ?  ? nested SELECT</text>
+  <rect class="callout" x="478" y="106" width="216" height="56" rx="6"/>
+  <text class="lbl" x="490" y="130">JOIN appears</text>
+  <text class="muted" x="490" y="150">tooltip / highlight on line</text>
+  <rect class="callout" x="478" y="254" width="216" height="68" rx="6"/>
+  <text class="lbl" x="490" y="280">Inner subquery only</text>
+  <text class="muted" x="490" y="300">JOIN applies inside</text>
+  <text class="muted" x="490" y="314">IN ( ? SELECT ? )</text>
+</svg>

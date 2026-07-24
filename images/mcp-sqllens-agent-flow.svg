@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" role="img" aria-labelledby="mcpTitle mcpDesc">
+  <title id="mcpTitle">SQLLens MCP agent flow</title>
+  <desc id="mcpDesc">Chat or Agent mode connects through SQLLens MCP to saved connection profiles and a database.</desc>
+  <defs>
+    <style type="text/css"><![CDATA[
+      .bg{fill:#1e1e1e;}
+      .panel{fill:#252526;stroke:#3c3c3c;}
+      .box{fill:#2d2d30;stroke:#3c3c3c;}
+      .accent{fill:#1a2a3a;stroke:#1a73e8;}
+      .lbl{fill:#e8e8e8;font-family:Segoe UI,system-ui,sans-serif;font-size:12px;font-weight:600;}
+      .sub{fill:#9aa0a6;font-family:Segoe UI,system-ui,sans-serif;font-size:10px;}
+      .mono{fill:#8ab4f8;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9px;}
+      .arrow{stroke:#1a73e8;stroke-width:2;fill:none;marker-end:url(#arr);}
+      .chip{fill:#1a3a5c;stroke:#1a73e8;}
+      .chip-t{fill:#8ab4f8;font-family:Segoe UI,system-ui,sans-serif;font-size:9px;}
+    ]]></style>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#1a73e8"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="720" height="400" rx="8"/>
+  <text class="lbl" x="20" y="28">SQLLens MCP  agent database access</text>
+  <text class="sub" x="20" y="46">VS Code / Cursor · @sql · @sqllens · Agent tools picker</text>
+
+  <rect class="box" x="24" y="72" width="140" height="88" rx="8"/>
+  <text class="lbl" x="40" y="100">Chat</text>
+  <text class="sub" x="40" y="118">@sql / @sqllens</text>
+  <text class="mono" x="40" y="140">/schema · SQL block</text>
+
+  <rect class="box" x="24" y="180" width="140" height="88" rx="8"/>
+  <text class="lbl" x="40" y="208">Agent mode</text>
+  <text class="sub" x="40" y="226">Natural language</text>
+  <text class="mono" x="40" y="248">Tools: SQLLens</text>
+
+  <path class="arrow" d="M164 116 H248"/>
+  <path class="arrow" d="M164 224 H248 V140"/>
+
+  <rect class="accent" x="252" y="108" width="168" height="120" rx="8"/>
+  <text class="lbl" x="268" y="136">SQLLens MCP</text>
+  <text class="sub" x="268" y="156">Auto-registered server</text>
+  <rect class="chip" x="268" y="168" width="72" height="18" rx="4"/>
+  <text class="chip-t" x="276" y="181">read-only</text>
+  <text class="sub" x="268" y="208">Schema · SELECT · connect</text>
+
+  <path class="arrow" d="M420 168 H504"/>
+
+  <rect class="box" x="508" y="72" width="188" height="192" rx="8"/>
+  <text class="lbl" x="524" y="100">Saved profiles</text>
+  <text class="sub" x="524" y="120">MySQL · PostgreSQL · SQLite</text>
+  <text class="mono" x="524" y="148">staging-mysql</text>
+  <text class="mono" x="524" y="168">analytics-pg</text>
+  <text class="mono" x="524" y="188">ecommerce.sqlite</text>
+  <text class="sub" x="524" y="218">Active tab default</text>
+  <text class="sub" x="524" y="236">or any named profile</text>
+
+  <path class="arrow" d="M602 264 V304"/>
+
+  <rect class="box" x="508" y="308" width="188" height="72" rx="8"/>
+  <text class="lbl" x="524" y="336">Database</text>
+  <text class="sub" x="524" y="356">One connection + one DB per call</text>
+
+  <rect class="panel" x="24" y="296" width="400" height="84" rx="8"/>
+  <text class="lbl" x="40" y="324">Optional external listener</text>
+  <text class="sub" x="40" y="344">Command Palette: Start external MCP listener</text>
+  <text class="sub" x="40" y="362">For Claude Desktop etc. · localhost port 5012 default</text>
+</svg>

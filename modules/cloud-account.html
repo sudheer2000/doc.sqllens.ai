@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cloud & sqllens.ai account · SQLLens.AI Docs</title>
+<meta name="description" content="Sign in for cloud‑backed AI routing, usage metering and team features — or stay fully offline." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>Cloud & sqllens.ai</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Guides</div>
+      <h1>Cloud & sqllens.ai account</h1>
+      <p class="lede">Sign in for cloud‑backed AI routing, usage metering and team features — or stay fully offline.</p>
+    </header>
+    
+
+
+<h2 id="cca-overview">Overview</h2>
+<p>SQLLens.AI runs without an account. Signing in to <a href="https://www.skylineai.app/" target="_blank" rel="noopener noreferrer">Skyline‑AI</a> (<strong>sqllens.ai</strong>) unlocks managed AI routing across providers, shared usage tracking, and (where available) team features. Local connections and queries stay on your machine either way.</p>
+
+<h2 id="cca-sign-in-out">Sign in &amp; sign out</h2>
+<p>Open the <strong>Account</strong> panel in the SQLLens.AI sidebar and choose <em>Sign in</em>. VS Code opens your browser to the Skyline‑AI login page:</p>
+<p><a href="https://www.skylineai.app/auth" target="_blank" rel="noopener noreferrer"><strong>https://www.skylineai.app/auth</strong></a> — product home: <a href="https://www.skylineai.app/" target="_blank" rel="noopener noreferrer">https://www.skylineai.app/</a></p>
+<p>After you authenticate, return to VS Code; the extension stores your session locally. Sign out from the same <strong>Account</strong> panel to revoke the local session.</p>
+
+<h3 id="cca-web-login">Web login (Skyline‑AI)</h3>
+<p>On the login page you can use:</p>
+<ul>
+<li><strong>Continue with Google</strong> or <strong>Continue with GitHub</strong></li>
+<li><strong>Email</strong> and <strong>Password</strong>, then <strong>Continue</strong></li>
+<li><strong>Forgot password?</strong> or <strong>Resend activation email</strong> if needed</li>
+<li><strong>Create your account</strong> at the bottom if you do not have one yet</li>
+</ul>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/cloud-account-login.jpg" width="720" height="612" alt="Skyline-AI Log in page with Google, GitHub, email and password fields." loading="lazy" decoding="async" />
+<figcaption class="caption">Skyline‑AI login at <code>skylineai.app/auth</code> — social sign‑in or email and password.</figcaption>
+</figure>
+<div class="callout tip"><div class="label">Tip</div><p>The default login URL matches <code>skyline-mysql.skylineApi.authPageUrl</code> in <a href="../settings.html#settings-cloud">Settings → sqllens.ai / Skyline API</a>. Change it only if your organization hosts a custom auth page.</p></div>
+
+<h2 id="cca-usage">Usage &amp; credits</h2>
+<p>The account panel shows current credit balance and AI usage for the period. Click <strong>Open dashboard</strong> to open your plan and usage on <a href="https://www.skylineai.app/" target="_blank" rel="noopener noreferrer">skylineai.app</a> (invoices, plan, and provider routing).</p>
+
+<h2 id="cca-offline">Offline / disabling cloud API</h2>
+<p>Turn off cloud routing under <a href="../settings.html#settings-cloud">Settings → sqllens.ai / Skyline API</a> (<code>skyline-mysql.skylineApi.enabled</code>). With cloud disabled, only providers you've configured with your own API keys will be used.</p>
+<div class="callout note"><div class="label">Note</div><p>You can run a fully local LLM (for example Ollama) without signing in at all.</p></div>
+
+<h2 id="cca-tree-gate">Tree gate &amp; diagnose</h2>
+<p>If the connections tree appears empty after sign‑in, choose <strong>Diagnose</strong> in the Account panel. SQLLens.AI checks your session, network reachability of the Skyline API (<code>api.skylineai.app</code> by default), and any restricted‑mode flag set by your team.</p>
+
+
+        <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://www.skylineai.app/" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

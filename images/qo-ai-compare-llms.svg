@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 440" role="img" aria-labelledby="cmpTitle cmpDesc">
+  <title id="cmpTitle">3 AI compare (LLMs)  model slots and ranked consensus</title>
+  <desc id="cmpDesc">Three model picker slots, Run consensus button, status bar, and vertically ranked recommendation cards.</desc>
+  <defs>
+    <style type="text/css"><![CDATA[
+      .bg{fill:#1e1e1e;}
+      .panel{fill:#252526;stroke:#3c3c3c;}
+      .slot{fill:#2d2d30;stroke:#3c3c3c;}
+      .card{fill:#2a2a2a;stroke:#3c3c3c;}
+      .status{fill:#1a2a3a;stroke:#1a73e8;}
+      .lbl{fill:#e8e8e8;font-family:Segoe UI,system-ui,sans-serif;font-size:11px;font-weight:600;}
+      .sub{fill:#9aa0a6;font-family:Segoe UI,system-ui,sans-serif;font-size:10px;}
+      .mono{fill:#cbd5e1;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9px;}
+      .btn{fill:#1a73e8;}
+      .btn-t{fill:#fff;font-family:Segoe UI,system-ui,sans-serif;font-size:10px;font-weight:600;}
+      .chip{fill:#1a3a5c;stroke:#1a73e8;}
+      .chip-g{fill:#1a3a2a;stroke:#34a853;}
+      .chip-t{fill:#8ab4f8;font-family:Segoe UI,system-ui,sans-serif;font-size:9px;}
+      .chip-gt{fill:#81c995;font-family:Segoe UI,system-ui,sans-serif;font-size:9px;}
+    ]]></style>
+  </defs>
+  <rect class="bg" width="720" height="440" rx="8"/>
+  <text class="lbl" x="20" y="26">3 AI compare (LLMs)</text>
+  <text class="sub" x="20" y="44">Pick Index Engine, Auto, or a named model per slot</text>
+  <rect class="btn" x="596" y="18" width="104" height="28" rx="6"/>
+  <text class="btn-t" x="612" y="36">¶ Run consensus</text>
+  <rect class="slot" x="16" y="58" width="216" height="72" rx="8"/>
+  <text class="sub" x="28" y="78">Slot 1</text>
+  <text class="lbl" x="28" y="96">Index Engine</text>
+  <text class="sub" x="28" y="118">3 recs · 12ms</text>
+  <rect class="slot" x="244" y="58" width="216" height="72" rx="8"/>
+  <text class="sub" x="256" y="78">Slot 2</text>
+  <text class="lbl" x="256" y="96">Claude Sonnet</text>
+  <text class="sub" x="256" y="118">1 rec · 2.4s · 1.2k tok</text>
+  <rect class="slot" x="472" y="58" width="228" height="72" rx="8"/>
+  <text class="sub" x="484" y="78">Slot 3</text>
+  <text class="lbl" x="484" y="96">GPT-4o</text>
+  <text class="sub" x="484" y="118">1 rec · 1.8s</text>
+  <rect class="status" x="16" y="142" width="688" height="28" rx="6"/>
+  <text class="sub" x="28" y="160"> Consensus complete  3 sources · 1 unanimous · 4.2s max</text>
+  <text class="sub" x="16" y="188">1 unanimous · 0 partial · 0 unique</text>
+  <rect class="card" x="16" y="200" width="688" height="108" rx="8"/>
+  <rect class="chip-g" x="28" y="212" width="72" height="18" rx="4"/>
+  <text class="chip-gt" x="36" y="225"> All agree</text>
+  <text class="lbl" x="108" y="226">qo_customers (region, salary)</text>
+  <text class="sub" x="28" y="248">Leading region for equality filter; salary supports ORDER BY within region.</text>
+  <text class="mono" x="28" y="268">CREATE INDEX idx_region_salary ON qo_customers (region, salary);</text>
+  <rect class="btn" x="584" y="272" width="108" height="26" rx="6"/>
+  <text class="btn-t" x="600" y="290">Create Index</text>
+  <rect class="card" x="16" y="320" width="688" height="96" rx="8"/>
+  <rect class="chip" x="28" y="332" width="88" height="18" rx="4"/>
+  <text class="chip-t" x="36" y="345">Index Engine only</text>
+  <text class="lbl" x="124" y="346">qo_orders (customer_id)</text>
+  <text class="sub" x="28" y="368">No LLM matched this engine-only suggestion.</text>
+  <text class="mono" x="28" y="388">CREATE INDEX idx_customer ON qo_orders (customer_id);</text>
+</svg>

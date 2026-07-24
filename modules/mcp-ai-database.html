@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MCP &amp; AI database access · SQLLens.AI Docs</title>
+<meta name="description" content="Let AI agents and chat use your saved SQLLens connections — schema discovery, read-only SELECT, optional writes, @sql and @sqllens chat, and Agent mode in VS Code or Cursor." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>MCP &amp; AI database</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">AI · Agents</div>
+      <h1>MCP &amp; AI database access</h1>
+      <p class="lede">Connect Copilot Agent, Cursor, and chat to your saved SQLLens profiles. Agents can discover schema, run read-only queries, and — when you allow it — apply controlled writes — without exposing passwords or manual MCP wiring inside the editor.</p>
+    </header>
+
+<h2 id="mcp-overview">What it is</h2>
+<p>SQLLens registers as an <strong>MCP server</strong> (Model Context Protocol) named <strong>SQLLens</strong>. When enabled, AI clients in VS Code or Cursor can use your <strong>saved connection profiles</strong> on this machine to:</p>
+<ul>
+<li><strong>List connections</strong> — profile names, engine type, and identifiers (never passwords).</li>
+<li><strong>Explore databases and schema</strong> — databases, schemas, tables, columns, and indexes.</li>
+<li><strong>Run SELECT queries</strong> — read-only by default.</li>
+<li><strong>Optionally write</strong> — INSERT, UPDATE, DELETE, DDL, or copy-data when you turn off read-only mode and enable writes in Settings.</li>
+</ul>
+<p>This is separate from inline SQL generation (<a href="ai-llm-integration.html">LLMs &amp; AI</a>): MCP gives <em>agents</em> structured tools to inspect and query live databases through SQLLens, similar to how DBCode exposes database context to an agent.</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/mcp-sqllens-agent-flow.svg" width="720" height="400" alt="Diagram: Chat or Agent mode connects through SQLLens MCP to saved connection profiles and the database." loading="lazy" decoding="async" />
+<figcaption class="caption">Agent or chat → SQLLens MCP → saved profiles → one connection + one database per operation.</figcaption>
+</figure>
+
+<h2 id="mcp-vscode-cursor">VS Code &amp; Cursor</h2>
+<p>When SQLLens is installed and MCP is enabled, the extension <strong>auto-registers</strong> the <strong>SQLLens</strong> MCP server with the editor. You do <strong>not</strong> need to edit <code>mcp.json</code> for in-editor Agent or chat use.</p>
+<table>
+<thead><tr><th>Where</th><th>What you see</th></tr></thead>
+<tbody>
+<tr><td><strong>Copilot Agent / Cursor Agent</strong></td><td>Enable <strong>SQLLens</strong> in the tools or MCP picker, then ask natural-language questions about your data.</td></tr>
+<tr><td><strong>Extension Host</strong></td><td>SQLLens must be running — use an installed build or <strong>Run Extension</strong> (F5) during development.</td></tr>
+<tr><td><strong>First use</strong></td><td>A one-time consent modal explains what agents can access; choose <strong>Allow</strong> to register tools.</td></tr>
+</tbody>
+</table>
+<div class="callout note"><div class="label">Installed vs F5</div><p>Both the Marketplace extension and a debug (F5) session register MCP. Saved connections are the same profiles you use in the SQLLens sidebar — save at least one before asking agents to query.</p></div>
+
+<h2 id="mcp-chat-participants">@sql and @sqllens chat</h2>
+<p>SQLLens also registers two <strong>chat participants</strong> in supported editors:</p>
+<table>
+<thead><tr><th>Mention</th><th>Name</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>@sql</code></td><td>sql</td><td>Database assistant backed by the same MCP tools.</td></tr>
+<tr><td><code>@sqllens</code></td><td>SQLLens</td><td>Same behavior — use whichever mention your editor suggests.</td></tr>
+</tbody>
+</table>
+<p>Open chat, type <code>@sql</code> or <code>@sqllens</code>, then:</p>
+<ul>
+<li><strong>Slash commands</strong> — <code>/connections</code>, <code>/databases</code>, <code>/schema</code>, <code>/connect</code>, <code>/disconnect</code>.</li>
+<li><strong>Natural phrases</strong> — e.g. <em>list connections</em>, <em>show schema</em>, <em>list tables</em>.</li>
+<li><strong>SQL in a fenced block</strong> — paste or type <code>```sql</code> … <code>```</code>; SELECT runs read-only; DML/DDL follow the same safety rules as Agent tools.</li>
+</ul>
+<p>Example:</p>
+<pre><code>@sql list connections
+
+@sqllens /schema
+
+@sql run this query:
+```sql
+SELECT region, COUNT(*) AS n
+FROM customers
+GROUP BY region
+ORDER BY n DESC
+LIMIT 10
+```</code></pre>
+<p>When an SQL editor tab has an <strong>Active</strong> database (see <a href="sql-workspace.html#ws-db-context">per-file database context</a>), chat uses that connection by default.</p>
+
+<h2 id="mcp-agent-mode">Agent mode (natural language)</h2>
+<p>For multi-step questions, use <strong>Agent mode</strong> (Copilot Agent in VS Code, Agent in Cursor):</p>
+<ol>
+<li>Ensure SQLLens is running and you accepted the first-time MCP consent.</li>
+<li>Open the agent tools picker and enable <strong>SQLLens</strong>.</li>
+<li>Ask in plain language — the agent chains tools (connections → schema → query) without you writing SQL first.</li>
+</ol>
+<p>Example prompts:</p>
+<ul>
+<li><em>“What tables are in my active database?”</em></li>
+<li><em>“How many orders were placed last month on the staging connection?”</em></li>
+<li><em>“Show the top 5 slowest-looking tables by row count on the analytics SQLite file.”</em></li>
+</ul>
+<p>The agent picks the right tool calls; you review results in the chat thread. For a single known query, <code>@sql</code> with a SQL block is often faster.</p>
+
+<h2 id="mcp-connections">Connection scope</h2>
+<p>MCP and chat work against <strong>all saved profiles</strong> in SQLLens — not only the sidebar <strong>Active</strong> badge.</p>
+<table>
+<thead><tr><th>Concept</th><th>Behavior</th></tr></thead>
+<tbody>
+<tr><td><strong>Default context</strong></td><td>When you do not name a connection, tools use the <strong>active SQL tab</strong> binding or last-used tree context — same rules as Run SQL.</td></tr>
+<tr><td><strong>Any saved profile</strong></td><td>Agents can list every saved connection and target a specific one by name or id when you ask.</td></tr>
+<tr><td><strong>One operation</strong></td><td>Each tool call uses <strong>one connection</strong> and <strong>one database or schema</strong>.</td></tr>
+<tr><td><strong>Engines</strong></td><td>MySQL, MariaDB, PostgreSQL, and SQLite profiles are all listed; engine type is included in connection metadata.</td></tr>
+</tbody>
+</table>
+<p>To align chat with a tab, set <strong>Active</strong> on the database in the connection tree or use <code>/connect</code> after naming the profile.</p>
+
+<h3 id="mcp-sqlite">SQLite profiles</h3>
+<p>Each SQLite saved profile points at <strong>one database file</strong>. Agents are <strong>not</strong> limited to whichever SQLite file is active in the editor — name the profile (for example <em>“ecommerce sample”</em>) and the agent can query that file even when another tab is focused.</p>
+<p>Use <code>/disconnect</code> or agent disconnect tools when you need to release file locks before external tools touch the same <code>.db</code> file.</p>
+
+<h2 id="mcp-safety">Safety &amp; privacy</h2>
+<p>Defaults are conservative:</p>
+<table>
+<thead><tr><th>Setting</th><th>Default</th><th>Effect</th></tr></thead>
+<tbody>
+<tr><td><code>sqllens.ai.mcp.enabled</code></td><td>on</td><td>Register SQLLens with MCP clients.</td></tr>
+<tr><td><code>sqllens.ai.mcp.readOnly</code></td><td>on</td><td>Only SELECT-style reads through query tools.</td></tr>
+<tr><td><code>sqllens.ai.mcp.allowWrites</code></td><td>off</td><td>DML, DDL, and copy-data require read-only off <em>and</em> this on.</td></tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Passwords never leave SQLLens</strong> — connection tools return names and metadata only.</li>
+<li><strong>Write consent</strong> — chat shows a confirmation modal before DML/DDL when writes are allowed.</li>
+<li><strong>Disable anytime</strong> — turn off <code>sqllens.ai.mcp.enabled</code> to unregister tools, or set read-only to block mutations.</li>
+</ul>
+<p>Search Settings for <strong>sqllens.ai MCP</strong> to adjust all keys. Only enable writes if you trust every agent and client that can reach these tools.</p>
+
+<h2 id="mcp-tools">What agents can do (tool summary)</h2>
+<p>Agents and chat map to a small set of database tools:</p>
+<table>
+<thead><tr><th>Capability</th><th>Typical use</th><th>Writes</th></tr></thead>
+<tbody>
+<tr><td>List connections</td><td>Discover saved profiles and default context</td><td>—</td></tr>
+<tr><td>List databases / schemas</td><td>Pick a catalog after choosing a connection</td><td>—</td></tr>
+<tr><td>Table &amp; column metadata</td><td>Schema discovery before querying</td><td>—</td></tr>
+<tr><td>Execute query</td><td>SELECT (and read-only introspection)</td><td>Read</td></tr>
+<tr><td>Execute DML</td><td>INSERT, UPDATE, DELETE</td><td>Requires write settings</td></tr>
+<tr><td>Execute DDL</td><td>CREATE, ALTER, DROP, TRUNCATE</td><td>Requires write settings</td></tr>
+<tr><td>Copy data</td><td>SELECT → insert into another table (row cap applies)</td><td>Requires write settings</td></tr>
+<tr><td>Connect / disconnect</td><td>Open or release pooled connections</td><td>—</td></tr>
+</tbody>
+</table>
+
+<h2 id="mcp-external-listener">External MCP listener (optional)</h2>
+<p>Inside VS Code or Cursor, MCP uses the built-in registration — no extra listener. For <strong>external clients</strong> (for example Claude Desktop on the same machine), you can start an optional local listener:</p>
+<ol>
+<li>Run the command <strong>SQLLens: Start external MCP listener</strong> from the Command Palette.</li>
+<li>Point your external MCP client at the local listener (default port <strong>5012</strong> on this machine).</li>
+<li>Stop with <strong>SQLLens: Stop external MCP listener</strong> when finished.</li>
+</ol>
+<div class="callout note"><div class="label">Technical note</div><p>Default bind is localhost only. Optional Settings control auto-start on launch, port, bearer authorization, and whether other machines on your network may connect. Keep localhost-only unless you understand the exposure.</p></div>
+<p>The extension must stay running while an external client connects — same as for in-editor MCP.</p>
+
+<h2 id="mcp-getting-started">Getting started</h2>
+<ol>
+<li><strong>Install SQLLens</strong> from the Marketplace (or F5 from source).</li>
+<li><strong>Save a connection</strong> — <a href="../connect-db.html">Connect a database</a> and store at least one profile.</li>
+<li><strong>Open an SQL file</strong> (optional) and set <strong>Active</strong> on the database you want as default.</li>
+<li><strong>First MCP use</strong> — enable Agent tools or <code>@sql</code>; accept the consent modal.</li>
+<li><strong>Try a prompt</strong> — <em>“@sql list connections”</em> or Agent: <em>“What tables exist in my active database?”</em></li>
+<li><strong>Tune safety</strong> — leave read-only on until you explicitly need agent-driven writes.</li>
+</ol>
+<p>Related: <a href="ai-llm-integration.html">LLMs &amp; AI</a> for editor CodeLens and assist panel; <a href="sql-workspace.html#ws-explorer">Explorer &amp; active database</a> for how Active context is chosen.</p>
+
+<h2 id="mcp-tips">Tips &amp; limits</h2>
+<ul>
+<li><strong>Name connections clearly</strong> — agents match natural language to profile names.</li>
+<li><strong>Specify the database</strong> when a connection has many catalogs; default comes from Active context.</li>
+<li><strong>Large results</strong> — agents may truncate wide result sets; narrow SELECT lists when possible.</li>
+<li><strong>Cloud sign-in</strong> — installed builds may prompt for sqllens.ai sign-in before MCP tools activate; F5 development typically skips this for local connections.</li>
+<li><strong>Turn off MCP</strong> — set <code>sqllens.ai.mcp.enabled</code> to false if you do not want any agent database access.</li>
+</ul>
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

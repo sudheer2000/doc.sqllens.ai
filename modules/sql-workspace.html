@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SQL editor & workspace · SQLLens.AI Docs</title>
+<meta name="description" content="SQL editor in VS Code: new .sql files, syntax highlighting, autocomplete, SQL Favorites, CodeLens, Run/EXPLAIN/Optimize, and result panels." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>SQL editor & workspace</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Pillar</div>
+      <h1>SQL editor & workspace</h1>
+      <p class="lede">Write, run and organize SQL with explorer‑bound files, CodeLens, autocomplete, format tools, favorites and result panels.</p>
+    </header>
+    
+<h2 id="ws-overview">Overview</h2>
+<p>The workspace ties an editor tab to a connection, gives every statement a CodeLens row of one‑click actions, and surfaces results in dedicated panels. You can pin queries as <strong>SQL Favorites</strong> or save them as files under a connection in the tree. For the recommended order of actions, see <a href="#ws-favorites-panel">SQL workspace — action priority</a>.</p>
+<figure class="doc-media doc-media--gif">
+<img src="../images/query-builder-landing-demo.gif" width="640" alt="Animated demo: SQL editor with connection tree, Switch Database bar, and Query Results panel." loading="lazy" decoding="async" />
+<figcaption class="caption">SQL workspace — explorer, editor, active database, and Query Results (same capture as Query Builder landing demo).</figcaption>
+</figure>
+
+<h2 id="ws-favorites-panel">SQL workspace — action priority</h2>
+<p>Use this order for day-to-day work in a <code>.sql</code> tab. Higher numbers are for tuning, reuse, or advanced flows — not your first step.</p>
+
+<h3 id="ws-priority-1">Priority 1 — Write SQL &amp; run a script</h3>
+<p>Start here: open or create a file, bind the database, write SQL, then run the <strong>whole script</strong> when you have multiple statements.</p>
+<table>
+<thead><tr><th>Step</th><th>Action</th><th>How</th></tr></thead>
+<tbody>
+<tr><td><strong>1a</strong></td><td><strong>Open / create</strong> a <code>.sql</code> file</td><td><a href="#ws-open-files">New SQL File</a>, tree saved query, or <em>File → New</em> + SQL language.</td></tr>
+<tr><td><strong>1b</strong></td><td><strong>Bind connection &amp; database</strong></td><td>Line 1 CodeLens <strong>Switch Database</strong> / <strong>database @ server</strong>, status bar, or <em>Connect SQL File to Database</em> (see <a href="#ws-db-context">per-file context</a>).</td></tr>
+<tr><td><strong>1c</strong></td><td><strong>Write</strong> your SQL</td><td>Type, <a href="query-builder.html">Query builder</a> drags, <a href="#ws-autocomplete">autocomplete</a>, or <a href="ai-llm-integration.html">SQL with AI</a>.</td></tr>
+<tr><td><strong>1d</strong></td><td><strong>Run All Queries</strong> (full script)</td><td>Right‑click → <strong>Run All Queries</strong>, or <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>↵</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>↵</kbd>. Each statement runs in order; status in <strong>SQL STATUS</strong>, rows in <strong>Query Results</strong>.</td></tr>
+</tbody>
+</table>
+<div class="callout tip"><div class="label">Tip</div><p>For migration or admin files with many <code>;</code>-terminated statements, <strong>Run All</strong> is the main action. Skip <strong>Run All</strong> when the file contains a <code>DELIMITER</code> block — use Priority 3 instead.</p></div>
+
+<h3 id="ws-priority-2">Priority 2 — Run one query</h3>
+<p>When you are iterating on a <strong>single statement</strong>, put the caret inside it and run only that block.</p>
+<table>
+<thead><tr><th>Action</th><th>How</th></tr></thead>
+<tbody>
+<tr><td><strong>▶ Run SQL</strong> (CodeLens)</td><td>Click above the statement, or <kbd>F9</kbd> / <kbd>⌘</kbd>+<kbd>↵</kbd> / <kbd>Ctrl</kbd>+<kbd>↵</kbd>.</td></tr>
+<tr><td><strong>Run SQL Query</strong> (menu)</td><td>Right‑click → <strong>Run SQL Query</strong> — same as CodeLens (see <a href="#ws-editor-context">editor right‑click</a>).</td></tr>
+<tr><td><strong>Run from Favorites</strong></td><td><strong>SQL FAVORITES</strong> panel → double‑click a row or use the panel run control (see <a href="#ws-favorites">SQL Favorites</a>).</td></tr>
+</tbody>
+</table>
+<p>Results open in <strong>Query Results</strong>; errors and timings in <strong>SQL STATUS</strong> (<a href="#ws-panels">panels</a>).</p>
+
+<h3 id="ws-priority-3">Priority 3 — Write &amp; run PL/SQL / <code>DELIMITER</code> blocks</h3>
+<p>Stored procedures, functions, and triggers use a custom delimiter so semicolons inside <code>BEGIN … END</code> do not split the script.</p>
+<table>
+<thead><tr><th>Step</th><th>Action</th><th>How</th></tr></thead>
+<tbody>
+<tr><td><strong>3a</strong></td><td><strong>Write</strong> the block</td><td><code>DELIMITER //</code> … <code>CREATE PROCEDURE</code> / <code>FUNCTION</code> / <code>TRIGGER</code> … <code>END //</code> … <code>DELIMITER ;</code> — examples in <a href="#ws-examples-delimiter">sample DELIMITER blocks</a>.</td></tr>
+<tr><td><strong>3b</strong></td><td><strong>▶ RUN PLSQL Block</strong></td><td>CodeLens on the <strong>opening</strong> <code>DELIMITER &lt;token&gt;</code> line (not on <code>DELIMITER ;</code>). Runs from that line through the matching <code>DELIMITER ;</code>.</td></tr>
+<tr><td><strong>3c</strong></td><td><strong>Call / test</strong></td><td>Run <code>CALL …</code> or a plain <code>SELECT</code> in a separate statement after the block is created.</td></tr>
+</tbody>
+</table>
+<p>Details: <a href="#ws-codelens-delimiter">DELIMITER &amp; stored‑program blocks</a>.</p>
+
+<h3 id="ws-priority-other">Other actions (when you need them)</h3>
+<p>These are important but secondary to write → run script → run one query → PL/SQL.</p>
+<table>
+<thead><tr><th>Group</th><th>Actions</th><th>When to use</th></tr></thead>
+<tbody>
+<tr><td><strong>Understand performance</strong></td><td><strong>Explain Query</strong>, <strong>⚡ Optimize</strong> / Visual Explain, <strong>Optimize All Queries</strong></td><td>Slow or complex <code>SELECT</code> / <code>UPDATE</code> / <code>DELETE</code> — <a href="#ws-run-explain">Run, EXPLAIN &amp; Optimize</a>, <a href="query-optimizer.html">Query Optimizer</a>.</td></tr>
+<tr><td><strong>AI</strong></td><td><strong>🤖 Generate SQL</strong>, <strong>Create SQL with AI</strong>, <strong>Fix SQL Error with AI</strong></td><td>Natural-language lines, <code>@ask</code> / <code>@sql</code> / <code>AI:</code> prompts — <a href="#ws-codelens-ai">AI CodeLens</a>, <a href="ai-llm-integration.html">SQL with AI</a>.</td></tr>
+<tr><td><strong>Reuse snippets</strong></td><td><strong>☆ Save as Favorite</strong>, <strong>SQL FAVORITES</strong> panel insert / manage</td><td>Star patterns you run often — <a href="#ws-favorites">SQL Favorites</a>. Save after a query works; run from panel when debugging.</td></tr>
+<tr><td><strong>Format &amp; fix</strong></td><td><strong>✨ Beautify</strong>, <strong>📖 Expand</strong> / <strong>📕 Collapse</strong>, <strong>Quick Fix</strong></td><td>Tidy layout or static syntax hints — <a href="#ws-format">Format &amp; Beautify</a>, <a href="#ws-codelens-statement">CodeLens</a>.</td></tr>
+<tr><td><strong>Results grid</strong></td><td>Filter, copy, edit row, export</td><td>After a <code>SELECT</code> returns rows — <a href="#ws-results-context">Query Results right‑click</a>.</td></tr>
+<tr><td><strong>Connection &amp; file</strong></td><td><strong>Switch Database</strong>, <strong>Connect SQL File to Database</strong>, tree search</td><td>Wrong schema, new tab, find a table — <a href="#ws-explorer">Explorer</a>, <a href="#ws-tree-search">tree search</a>.</td></tr>
+<tr><td><strong>Status log</strong></td><td>Copy / export / clear</td><td>Share error text or clear old runs — <a href="#ws-status-context">SQL Status right‑click</a>.</td></tr>
+</tbody>
+</table>
+
+<h2 id="ws-open-files">Open &amp; create SQL files</h2>
+<p>SQLLens.AI works on normal <code>.sql</code> files in VS Code. Ways to start a new editor tab:</p>
+<table>
+<thead><tr><th>How</th><th>What happens</th></tr></thead>
+<tbody>
+<tr><td><strong>New SQL File</strong> (<code>mysql.newSqlFile</code>)</td><td>Command Palette → <em>New SQL File</em>, or default <kbd>⌘</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd> (Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd>). Creates <code>query-001.sql</code> (numbered) in your workspace folder with a short header comment, connection hint, and tips. See <a href="keyboard-shortcuts.html#kbd-defaults">keyboard shortcuts</a>.</td></tr>
+<tr><td><strong>SQLLens.AI sidebar</strong></td><td>Use <strong>New SQL File</strong> from the connection welcome actions when no file is open.</td></tr>
+<tr><td><strong>Explorer tree</strong></td><td>Right‑click a <strong>connection</strong> or <strong>database</strong> and choose <em>New SQL File</em> — the new tab is bound to that connection (and database when you picked a schema).</td></tr>
+<tr><td><strong>VS Code</strong></td><td><em>File → New File</em>, then pick language <strong>SQL</strong>, or save as <code>.sql</code>.</td></tr>
+<tr><td><strong>Saved queries</strong></td><td>Double‑click a query stored under a connection in the tree to open it as a file tab.</td></tr>
+<tr><td><strong>AI / history</strong></td><td>Generated SQL from <a href="ai-llm-integration.html">SQL with AI</a> can open in a new untitled or saved <code>.sql</code> tab.</td></tr>
+</tbody>
+</table>
+<div class="callout tip"><div class="label">Tip</div><p>Each tab remembers its own connection and database (see <a href="#ws-db-context">per‑file context</a>). Run with <kbd>⌘</kbd>+<kbd>↵</kbd> / <kbd>Ctrl</kbd>+<kbd>↵</kbd> on the statement under the caret, or <strong>Run All</strong> with <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>↵</kbd>.</p></div>
+
+<h2 id="ws-syntax">Syntax highlighting</h2>
+<p>SQLLens.AI registers a MySQL‑aware grammar for <code>.sql</code> files. Colors follow your VS Code theme; optional <strong>sqllens.ai Dark</strong> / <strong>sqllens.ai Light</strong> themes tune the editor chrome.</p>
+<p>Typical highlighting in the editor:</p>
+<ul>
+<li><strong>Keywords</strong> — <code>SELECT</code>, <code>FROM</code>, <code>WHERE</code>, <code>JOIN</code>, <code>INSERT</code>, <code>CREATE</code>, and other DML/DDL/control words.</li>
+<li><strong>Strings</strong> — single‑quoted, double‑quoted, and backtick‑quoted identifiers (<code>`column`</code>).</li>
+<li><strong>Comments</strong> — <code>--</code> line, <code>#</code> line (MySQL), and <code>/* … */</code> block comments (often muted).</li>
+<li><strong>Numbers</strong> — numeric literals and decimals.</li>
+<li><strong>Qualified names</strong> — <code>schema.table</code> and multi‑part names when spelled out.</li>
+<li><strong>Functions</strong> — built‑ins such as <code>COUNT</code>, <code>CONCAT</code>, <code>NOW</code> before <code>(</code>.</li>
+</ul>
+<p>The header comment on new SQL files (connection hint, tips) uses the comment style so it stays separate from executable SQL.</p>
+<pre><code>-- connection hint (comment — not executed)
+SELECT emp_no, last_name          -- keyword + identifiers
+FROM employees.employees AS e     -- qualified table + alias
+WHERE hire_date &gt; '2000-01-01'    -- string literal + comparison
+  AND last_name LIKE 'K%';        -- pattern match</code></pre>
+
+<h2 id="ws-explorer">Explorer &amp; active database</h2>
+<p>Each connection in the explorer expands into databases, tables, views, routines and triggers. The <strong>Active</strong> badge marks the database that new statements will run against. Double‑click any other database to switch.</p>
+<p>The bar under the tab title shows <strong>Switch Database</strong> and the active target (for example <code>hr_demo @ 127.0.0.1:3306</code>) — click it to rebind without opening the tree.</p>
+
+<h2 id="ws-db-context">Per‑file / Active database context</h2>
+<p>Every <code>.sql</code> file remembers the connection and database it was last run against. The status bar shows the binding; click it to rebind, or use <em>SQL: Change Active Database</em> in the Command Palette.</p>
+<div class="callout tip"><div class="label">Tip</div><p>Open the same query against staging and production in two tabs — each tab keeps its own connection.</p></div>
+
+<h2 id="ws-saved-vs-favorites">Saved queries in the tree vs SQL Favorites</h2>
+<table>
+<thead><tr><th></th><th>Saved queries (tree)</th><th>SQL Favorites (panel)</th></tr></thead>
+<tbody>
+<tr><td><strong>Where</strong></td><td>Under each connection in the explorer</td><td><strong>SQL FAVORITES</strong> view next to Query Results, Terminal, etc.</td></tr>
+<tr><td><strong>Scope</strong></td><td>Tied to one server — migrations, admin scripts</td><td>Reusable snippets across connections</td></tr>
+<tr><td><strong>Typical use</strong></td><td>Long‑lived files for a project DB</td><td>Patterns like <code>SELECT * FROM … LIMIT 100</code></td></tr>
+</tbody>
+</table>
+
+<h2 id="ws-codelens-overview">CodeLens overview</h2>
+<p><strong>CodeLens</strong> are the small clickable links that appear <strong>above</strong> lines in the SQL editor. SQLLens.AI uses them for run/optimize actions on the statement at your caret, database context at the top of the file, and (when enabled) AI helpers.</p>
+
+<h3 id="ws-codelens-enable">Turn CodeLens on</h3>
+<ul>
+<li>In VS Code / Cursor: <strong>Settings</strong> → search <strong>Code Lens</strong> → enable <strong>Editor: Code Lens</strong> (<code>editor.codeLens</code>).</li>
+<li>To hide only SQLLens.AI lenses: set <strong>Disable Sql Code lens</strong> (<code>skyline-mysql.disableSqlCodeLen</code>) to <code>true</code> in Settings, then reload the window.</li>
+</ul>
+
+<h3 id="ws-codelens-which-statement">Which statement gets a row?</h3>
+<p>Statement CodeLens follow your <strong>caret</strong> (text cursor). SQLLens.AI parses the file into blocks (split on <code>;</code> or the active connection delimiter) and shows one link row on the <strong>first line</strong> of the block that contains the caret.</p>
+<ul>
+<li>Move the caret into a different query to switch which row appears.</li>
+<li>Inside a <code>CREATE PROCEDURE</code> / <code>TRIGGER</code> body, lenses usually appear only on the <strong>opening line</strong> of that routine (not on every inner line).</li>
+<li>If the statement is empty or CodeLens is disabled, the row is hidden.</li>
+</ul>
+
+<h3 id="ws-codelens-order">Where links appear</h3>
+<p><strong>Line 1 of the file</strong> — <a href="#ws-codelens-database">Switch Database</a> and the <strong>database @ connection</strong> chip (fixed; does not follow the caret).</p>
+<p><strong>Above the statement that contains your caret</strong> — links appear left → right in this order:</p>
+<ol>
+<li><strong>🤖 Generate SQL</strong> (AI — when the line is a natural-language prompt; see <a href="#ws-codelens-ai">AI CodeLens</a>)</li>
+<li><strong>▶ Run SQL</strong></li>
+<li><strong>🤖 Fix SQL Error with AI</strong> (after a failed run — see <a href="#ws-codelens-ai">AI CodeLens</a>)</li>
+<li><strong>⚡ Optimize</strong> (only for <code>SELECT</code>, <code>WITH</code>, <code>UPDATE</code>, <code>DELETE</code>)</li>
+<li><strong>✨ Beautify</strong></li>
+<li><strong>📖 Expand</strong> or <strong>📕 Collapse</strong> (layout — when the statement is long enough)</li>
+<li><strong>❌ Quick Fix</strong> or <strong>⚠️ Quick Fix</strong> (static syntax hints — when analysis finds issues)</li>
+<li><strong>☆ Save as Favorite</strong> (when the query is not already saved as a favorite)</li>
+</ol>
+<p><strong>EXPLAIN</strong> is not on the CodeLens row — use the editor <a href="#ws-editor-context-run">right‑click menu</a> or Command Palette (<em>Explain Query</em>).</p>
+
+<h3 id="ws-codelens-database">Top of file — database &amp; connection</h3>
+<p>On <strong>line 1</strong> of every <code>.sql</code> file, SQLLens.AI shows which database this file runs against:</p>
+<table>
+<thead><tr><th>CodeLens</th><th>When it appears</th><th>Click action</th></tr></thead>
+<tbody>
+<tr><td><strong>Switch Database</strong></td><td>File is bound to a connection with a database selected</td><td>Opens the database picker for this file (same as <em>Change Active Database</em>).</td></tr>
+<tr><td><strong>database @ connection</strong> (database icon)</td><td>Same — shows name and server, e.g. <code>mydb @ Local MySQL</code></td><td>Opens the database picker; tooltip shows connection details.</td></tr>
+<tr><td><strong>No Database Selected — Click to select</strong></td><td>Connected but no schema chosen</td><td>Pick a database before running queries.</td></tr>
+<tr><td><strong>Select Database</strong> / <strong>Add Connection</strong></td><td>No connection bound to the file</td><td>Choose an existing connection or add a new one.</td></tr>
+</tbody>
+</table>
+<p>These chips stay at the top while you edit; they do not move with the caret. Per-file binding is described under <a href="#ws-db-context">per-file database context</a>.</p>
+
+<h3 id="ws-codelens-statement">Statement row — full reference</h3>
+<table>
+<thead><tr><th>CodeLens</th><th>Shortcut</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><strong>▶ Run SQL</strong></td><td><kbd>F9</kbd> or <kbd>⌘</kbd>+<kbd>↵</kbd></td><td>Runs the statement under the caret against the file’s active database. Results open in <strong>Query Results</strong>.</td></tr>
+<tr><td><strong>⚡ Optimize</strong></td><td><kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>O</kbd> (Optimize from menu)</td><td>Opens <a href="query-optimizer.html">Query Optimizer</a> / Visual Explain for this statement. Shown only for optimizable statements (<code>SELECT</code>, <code>WITH …</code>, <code>UPDATE</code>, <code>DELETE</code>).</td></tr>
+<tr><td><strong>✨ Beautify</strong></td><td>—</td><td>Formats this statement (indentation and line breaks). Same command as <em>Beautify SQL</em> in the <a href="#ws-editor-context">right‑click menu</a>.</td></tr>
+<tr><td><strong>📖 Expand</strong></td><td>—</td><td>Turns a compact single-line statement into multi-line layout (appears when expansion would add lines).</td></tr>
+<tr><td><strong>📕 Collapse</strong></td><td>—</td><td>Collapses a multi-line statement toward a single line (replaces Expand when already expanded).</td></tr>
+<tr><td><strong>❌ Quick Fix</strong> / <strong>⚠️ Quick Fix</strong></td><td>—</td><td>Opens SQLLens.AI static analysis for this statement (missing keywords, suspicious patterns, etc.). Red icon = errors; yellow = warnings only. Hidden for very large statements.</td></tr>
+<tr><td><strong>☆ Save as Favorite</strong></td><td><kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></td><td>Saves this statement to <a href="#ws-favorites">SQL Favorites</a>. Hidden if the text already matches a saved favorite.</td></tr>
+</tbody>
+</table>
+
+<h3 id="ws-codelens-ai">AI CodeLens</h3>
+<p>Requires AI to be configured (see <a href="ai-llm-integration.html">SQL with AI</a>). If AI is off, these links do not appear.</p>
+<table>
+<thead><tr><th>CodeLens</th><th>When it appears</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><strong>🤖 Generate SQL</strong></td><td>Caret on a natural-language line (plain English, line ending with <code>?</code>, or <code>@AI</code> shortcut)</td><td>Generates SQL from the prompt and inserts/replaces text.</td></tr>
+<tr><td><strong>🤖 Generate SQL (AI Directive)</strong></td><td>Block comment <code>/* @AI "…" */</code> or line <code>@AI "…"</code></td><td>Generates SQL from the directive; on regenerate, only the SQL <em>after</em> the closing <code>*/</code> is replaced.</td></tr>
+<tr><td><strong>🔄 Regenerate SQL (AI)</strong></td><td>Same as directive, when generated SQL already exists below the block</td><td>Re-runs AI using the same prompt.</td></tr>
+<tr><td><strong>🤖 Fix SQL Error with AI</strong></td><td>After a statement <strong>fails on Run</strong> (server error)</td><td>Appears on the <strong>first line</strong> of the failed statement; sends the error to AI for a suggested fix.</td></tr>
+</tbody>
+</table>
+<p>When the caret is inside normal SQL (for example mid-<code>SELECT</code>), <strong>Generate SQL</strong> is hidden so it does not clash with run/optimize links.</p>
+
+<h4 id="ws-codelens-ai-examples">Sample AI prompt lines</h4>
+<p>Put the caret on a prompt line and click <strong>🤖 Generate SQL</strong> in CodeLens (or use the right‑click AI commands):</p>
+<pre><code>-- @ask: employees in Finance with salary above department average
+
+@sql: list open tickets assigned to me with priority and due date
+
+Which tables reference employees.employee_id?
+
+AI: "create a report query: revenue by region for Q3"</code></pre>
+<h4 id="ws-codelens-ai-block">Block-comment <code>@AI</code> with generated SQL</h4>
+<p>Keep the request in a block comment; generated SQL goes <strong>after</strong> <code>*/</code>. Use <strong>🔄 Regenerate SQL (AI)</strong> after editing the quoted prompt:</p>
+<pre><code>/* @AI "
+List active employees in Engineering hired after 2023-01-01.
+" */
+SELECT e.emp_no, e.first_name, e.last_name
+FROM employees e
+JOIN dept_emp de ON de.emp_no = e.emp_no AND de.to_date = '9999-01-01'
+JOIN departments d ON d.dept_no = de.dept_no
+WHERE d.dept_name = 'Engineering' AND e.hire_date &gt; '2023-01-01';</code></pre>
+
+<h2 id="ws-codelens-delimiter">DELIMITER &amp; stored‑program blocks</h2>
+<p>MySQL client scripts often use <code>DELIMITER //</code> … <code>DELIMITER ;</code> around routines. SQLLens.AI detects these blocks so <em>Run</em> sends the <strong>whole body</strong>, not one line at a time.</p>
+
+<h3 id="ws-codelens-delimiter-run">▶ RUN PLSQL Block</h3>
+<p>On each opening <code>DELIMITER &lt;token&gt;</code> line (where the token is not <code>;</code>), an extra CodeLens appears:</p>
+<ul>
+<li><strong>▶ RUN PLSQL Block</strong> — runs from that <code>DELIMITER</code> line through the matching <code>DELIMITER ;</code>, including <code>CREATE PROCEDURE</code>, <code>CREATE TRIGGER</code>, and similar bodies.</li>
+<li>There is <strong>no</strong> CodeLens on the closing <code>DELIMITER ;</code> line itself.</li>
+<li>Very large files (thousands of lines) may skip delimiter scanning for performance; use normal <strong>▶ Run SQL</strong> with the caret inside the block when needed.</li>
+</ul>
+<pre><code>DELIMITER //
+CREATE PROCEDURE list_dept_headcount(IN p_dept_no CHAR(4))
+BEGIN
+  SELECT d.dept_name, COUNT(*) AS headcount
+  FROM employees.dept_emp AS de
+  INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+  WHERE de.dept_no = p_dept_no
+    AND de.to_date = '9999-01-01'
+  GROUP BY d.dept_name;
+END //
+DELIMITER ;</code></pre>
+<p>Place the caret on the procedure’s opening line or use <strong>▶ RUN PLSQL Block</strong> on the <code>DELIMITER //</code> line to execute the entire script (including both <code>DELIMITER</code> lines and the <code>CREATE PROCEDURE</code> body). Semicolons <em>inside</em> <code>BEGIN … END</code> do not split the block.</p>
+
+<h2 id="ws-format">Format &amp; Beautify</h2>
+<p>Use the <em>Beautify</em> CodeLens, <em>SQL: Format Query</em> from the Command Palette, or expand/collapse layout commands to tidy multi‑line SQL.</p>
+
+
+<h2 id="ws-editor-context">SQL editor — right‑click menu</h2>
+<p>Right‑click anywhere in a <code>.sql</code> editor tab to open the full context menu. The list below matches the menu <strong>top to bottom</strong> when the file is in <strong>SQL</strong> language mode and connected to a database. The same SQLLens.AI actions appear on <a href="#ws-codelens-overview">CodeLens</a> above each statement.</p>
+<figure class="doc-media doc-media--diagram">
+<img src="../images/sql-editor-context-menu.jpg" width="720" height="582" alt="Right-click context menu in a SQL editor showing Run, Optimize, Beautify, Favorites, AI, and Connect SQL File options." loading="lazy" decoding="async" />
+<figcaption class="caption">SQL editor context menu — SQLLens.AI actions at the top; editor and optional AI assistant items below.</figcaption>
+</figure>
+<p>On Windows and Linux, use <kbd>Ctrl</kbd> where this page shows <kbd>⌘</kbd> (Command).</p>
+
+<h3 id="ws-editor-context-full">Complete menu reference</h3>
+<table>
+<thead><tr><th>Menu item (in order)</th><th>Shortcut (macOS)</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td colspan="3"><strong>Run &amp; optimize</strong> (SQLLens.AI)</td></tr>
+<tr><td><strong>Run SQL Query</strong></td><td><kbd>⌘</kbd>+<kbd>↵</kbd> or <kbd>F9</kbd></td><td>Executes the statement under the caret against the active connection; results open in <strong>Query Results</strong>.</td></tr>
+<tr><td><strong>Run All Queries</strong></td><td><kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>↵</kbd> or <kbd>Ctrl</kbd>+<kbd>F9</kbd></td><td>Runs every statement in the file in order.</td></tr>
+<tr><td><strong>Explain Query</strong></td><td>—</td><td>Runs <code>EXPLAIN</code> (or <code>EXPLAIN ANALYZE</code> when supported) for the statement under the caret.</td></tr>
+<tr><td><strong>Optimize Query (Visual Explain)</strong></td><td><kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>O</kbd></td><td>Opens <a href="query-optimizer.html">Query Optimizer</a> with a visual plan for the statement under the caret.</td></tr>
+<tr><td><strong>Optimize All Queries with Index Recommendations</strong></td><td>—</td><td>Analyzes every statement in the file and opens a combined optimizer review with index suggestions.</td></tr>
+<tr><td><strong>Optimize All Queries with Index Recommendations (Debug)</strong></td><td>—</td><td>Same as above with extra diagnostic detail — intended for troubleshooting; may only appear in some builds.</td></tr>
+<tr><td colspan="3"><strong>Chat &amp; Copilot</strong> (VS Code / Cursor — when installed)</td></tr>
+<tr><td><strong>Add Selection to Chat</strong></td><td>—</td><td>Sends the highlighted SQL to the editor’s AI chat panel.</td></tr>
+<tr><td><strong>Add File to Chat</strong></td><td>—</td><td>Sends the entire <code>.sql</code> file to chat.</td></tr>
+<tr><td><strong>Copilot</strong></td><td>—</td><td>Submenu for GitHub Copilot (inline chat, explain, and related actions). Shown only if the Copilot extension is enabled.</td></tr>
+<tr><td colspan="3"><strong>Format &amp; refactor</strong></td></tr>
+<tr><td><strong>Beautify SQL</strong></td><td>—</td><td>Formats the statement under the caret (SQLLens.AI — same as the <em>Beautify</em> CodeLens). See <a href="#ws-format">Format &amp; Beautify</a>.</td></tr>
+<tr><td><strong>Change All Occurrences</strong></td><td><kbd>⌘</kbd>+<kbd>F2</kbd></td><td>VS Code: rename all matches of the selected symbol in the file.</td></tr>
+<tr><td><strong>Format Document</strong></td><td><kbd>⌥</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></td><td>VS Code: format the whole document using the active formatter (may differ from SQLLens.AI Beautify).</td></tr>
+<tr><td><strong>Refactor…</strong></td><td><kbd>⌃</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd></td><td>VS Code: refactor menu (extract, rename symbol, and other language refactorings when available).</td></tr>
+<tr><td colspan="3"><strong>Favorites</strong> (SQLLens.AI)</td></tr>
+<tr><td><strong>★ Favorites: Add Current Query</strong></td><td><kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></td><td>Saves the statement under the caret to <a href="#ws-favorites">SQL Favorites</a>.</td></tr>
+<tr><td><strong>★ Favorites: Run Query</strong></td><td><kbd>⌘</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd></td><td>Pick a saved favorite and run it immediately.</td></tr>
+<tr><td colspan="3"><strong>AI</strong> (SQLLens.AI)</td></tr>
+<tr><td><strong>🤖 AI: Generate SQL (Choose Provider)</strong></td><td><kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></td><td>Generate SQL from the current line or selection using your configured provider — see <a href="ai-llm-integration.html">SQL with AI</a>.</td></tr>
+<tr><td><strong>✨ Create SQL with AI</strong></td><td>—</td><td>Opens the guided flow to create or extend SQL in the editor with AI.</td></tr>
+<tr><td colspan="3"><strong>Clipboard</strong> (VS Code)</td></tr>
+<tr><td><strong>Cut</strong></td><td><kbd>⌘</kbd>+<kbd>X</kbd></td><td>Cut selection to clipboard.</td></tr>
+<tr><td><strong>Copy</strong></td><td><kbd>⌘</kbd>+<kbd>C</kbd></td><td>Copy selection to clipboard.</td></tr>
+<tr><td><strong>Paste</strong></td><td><kbd>⌘</kbd>+<kbd>V</kbd></td><td>Paste from clipboard.</td></tr>
+<tr><td colspan="3"><strong>Other</strong></td></tr>
+<tr><td><strong>Command Palette…</strong></td><td><kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd></td><td>Opens all VS Code commands — search <em>SQLLens.AI</em> or <em>MySQL</em> for extension actions not on this menu.</td></tr>
+<tr><td><strong>Connect SQL File to Database</strong></td><td>—</td><td>Binds this <code>.sql</code> file to a connection and database (aligns with the status bar / <em>Change Active Database</em>).</td></tr>
+</tbody>
+</table>
+
+<h3 id="ws-editor-context-other">Items that appear in other cases</h3>
+<ul>
+<li><strong>Set as SQL File</strong> — shown at the top when the document is <em>not</em> in SQL language mode (for example a plain-text file). Switches the editor to SQL so Run, CodeLens, and autocomplete work.</li>
+<li><strong>Chat / Copilot rows</strong> — depend on which AI extensions you have installed (Cursor, GitHub Copilot, etc.). If you do not see them, use SQLLens.AI AI entries above or <a href="ai-llm-integration.html">SQL with AI</a>.</li>
+</ul>
+<div class="callout tip"><div class="label">Tip</div><p>For a printable shortcut list, open <em>SQLLens.AI: Show Keyboard Shortcuts</em> from the Command Palette (<kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>) or see <a href="keyboard-shortcuts.html#kbd-defaults">keyboard shortcuts</a>.</p></div>
+
+<h2 id="ws-results-context">Query Results — right‑click menu</h2>
+<p>After you <strong>Run</strong> a query, right‑click a <strong>cell</strong> or <strong>row</strong> in the <strong>QUERY RESULTS</strong> grid (see <a href="#ws-panels">result panels</a>). Menus are context‑sensitive: edit actions require a result set that allows editing (for example a single-table <code>SELECT</code>).</p>
+
+<h3 id="ws-results-filter-copy">Filter &amp; copy</h3>
+<ul>
+<li><strong>Filter by <code>column = 'value'</code></strong> — adds a <code>WHERE</code> filter using the clicked cell and re-runs (handy for drilling into one value).</li>
+<li><strong>Copy → Cell Value</strong> — copies the cell to the clipboard.</li>
+<li><strong>Copy → Row (Tab)</strong> — tab-separated row values.</li>
+<li><strong>Copy → Row as INSERT</strong> / <strong>Row as UPDATE</strong> — SQL statements for that row.</li>
+<li><strong>Copy → All Rows</strong> — Tab, CSV, JSON, or SQL for the full result set.</li>
+</ul>
+
+<h3 id="ws-results-edit-rows">Edit rows (when enabled)</h3>
+<ul>
+<li><strong>Edit → Open Edit Dialog</strong> — form editor for the row.</li>
+<li><strong>Edit → Set NULL</strong> / <strong>Set Empty String</strong> / <strong>Set to Default</strong> — quick cell edits in the grid.</li>
+<li><strong>Insert New Row</strong> / <strong>Duplicate Row</strong> / <strong>Delete Row</strong> — row CRUD when the grid is editable.</li>
+</ul>
+
+<h3 id="ws-results-export-appearance">Export, refresh &amp; appearance</h3>
+<ul>
+<li><strong>Export</strong> — Excel (<code>.xlsx</code>), CSV, JSON, or SQL (<code>INSERT</code>) for all rows in the result.</li>
+<li><strong>Refresh</strong> — re-runs the query that produced the grid.</li>
+<li><strong>Appearance → Header Border Color</strong> — Blue, Green, Red, Purple, Orange, Yellow, Rainbow gradient, or reset to default.</li>
+<li><strong>Appearance → Row Background Color</strong> — Default (transparent), light blue/green/yellow/purple/pink/orange tints, or reset to default. These only change how the grid looks in your session.</li>
+</ul>
+
+<h2 id="ws-status-context">SQL Status — right‑click menu</h2>
+<p>Right‑click in the <strong>SQL STATUS</strong> panel (query log, errors, timings) for:</p>
+<ul>
+<li><strong>Copy Selection</strong> — copies highlighted text in the panel.</li>
+<li><strong>Copy All</strong> — copies the full log content.</li>
+<li><strong>Export to Text…</strong> / <strong>Export to CSV…</strong> — saves the log to a file.</li>
+<li><strong>Clear All</strong> — empties the status panel.</li>
+</ul>
+<p>Individual error rows may also offer inline actions (for example copy SQL, search the error on the web, or ask AI for help) from buttons on the row — separate from this panel menu.</p>
+
+<h2 id="ws-autocomplete">Autocomplete (IntelliSense)</h2>
+<p>While you type in a <code>.sql</code> file connected to MySQL/MariaDB, SQLLens.AI adds schema‑aware suggestions on top of VS Code’s editor. For the full reference — <code>@com</code> / <code>@dba</code> channels, screenshots, JOIN <code>ON</code> lines, favorites, and keyboard shortcuts — see <a href="sql-autocomplete.html">SQL autocomplete</a>.</p>
+
+<h3 id="ws-autocomplete-invoke">How to open the list</h3>
+<ul>
+<li><strong>Implicit</strong> — keep typing; suggestions appear when VS Code’s <em>Quick Suggestions</em> are on.</li>
+<li><strong>Explicit</strong> — <kbd>Ctrl</kbd>+<kbd>Space</kbd> (macOS may use <kbd>⌃</kbd>+<kbd>Space</kbd> or <kbd>⌘</kbd>+<kbd>Space</kbd> depending on your keymap).</li>
+<li><strong>Filtering</strong> — more characters narrow the list; labels show whether a row is a table, column, favorite, diagnostic template, or keyword.</li>
+<li><strong>Snippets</strong> — some rows insert multi‑line SQL; use <kbd>Tab</kbd> to jump placeholders like any VS Code snippet.</li>
+</ul>
+<div class="callout note"><div class="label">Note</div><p>Inside <code>--</code>, <code>#</code>, or <code>/* */</code> comments, SQLLens.AI does not offer completions (string and backtick literals are respected).</p></div>
+
+<h3 id="ws-autocomplete-what">What you get</h3>
+<table>
+<thead><tr><th>Kind</th><th>Examples</th></tr></thead>
+<tbody>
+<tr><td><strong>Schema</strong></td><td>Databases, tables, views, columns, routines — from the active connection</td></tr>
+<tr><td><strong>JOIN helpers</strong></td><td>After <code>JOIN</code>, suggested <code>ON</code> lines using foreign‑key metadata; warns when no relationship is found</td></tr>
+<tr><td><strong>Table aliases</strong></td><td><code>AS alias</code> suggestions after <code>FROM</code> / <code>JOIN</code></td></tr>
+<tr><td><strong>Favorites &amp; recent</strong></td><td>Starred queries and frequently run SQL float toward the top when labels match</td></tr>
+<tr><td><strong>Diagnostics &amp; library</strong></td><td>Curated health/performance templates and a large MySQL command catalog</td></tr>
+<tr><td><strong>Query Builder hints</strong></td><td>Shortcut tokens (<code>s</code>, <code>LJ</code>, …) that pair with <a href="query-builder.html">tree drags</a> — accepting text alone does not run the full builder drop</td></tr>
+</tbody>
+</table>
+<p>For drag‑and‑drop statement assembly, see <a href="query-builder.html">Query builder</a>; autocomplete and the builder share vocabulary but different gestures.</p>
+<p>Example: after <code>SELECT </code> from a table, invoke suggestions (<kbd>Ctrl</kbd>+<kbd>Space</kbd>) to pick columns; after <code>INNER JOIN employees.departments AS d ON </code> accept a suggested <code>ON</code> line from foreign-key metadata:</p>
+<pre><code>SELECT e.emp_no, e.last_name, d.dept_name
+FROM employees.employees AS e
+INNER JOIN employees.dept_emp AS de ON de.emp_no = e.emp_no
+INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+WHERE e.hire_date &gt; '1990-01-01';</code></pre>
+<p>More copy-paste examples: <a href="#ws-sql-examples">Sample queries</a>.</p>
+
+<h2 id="ws-favorites">SQL Favorites</h2>
+<p>The <strong>SQL FAVORITES</strong> panel lists snippets you star for quick reuse. Open it from the bottom/side panel tabs (same row as <strong>QUERY RESULTS</strong>). For overall workflow order, see <a href="#ws-favorites-panel">action priority</a> — favorites are for <strong>reuse after</strong> you have working SQL (Priority 2 run, or save from Priority 1).</p>
+
+<h3 id="ws-favorites-panel-actions">Favorites panel — suggested order</h3>
+<ol>
+<li><strong>Run</strong> — double‑click a favorite or use the panel run action when you already trust the snippet (same as Priority 2).</li>
+<li><strong>Insert</strong> — click a row to paste into the editor, then edit and <strong>▶ Run SQL</strong>.</li>
+<li><strong>Save / manage</strong> — star from CodeLens <strong>☆ Save as Favorite</strong> or add from the panel; rename, folder, delete via <em>Manage</em>.</li>
+</ol>
+
+<h3 id="ws-favorites-save">Save a favorite</h3>
+<ul>
+<li>Click <strong>Favorite</strong> on the CodeLens row above a statement, or run <em>★ Favorites: Add Current Query</em> (<code>mysql.favorite.add</code>) from the Command Palette.</li>
+<li>Give the snippet a name and optional shortcuts — favorites can also appear in the completion list when you type the name prefix.</li>
+</ul>
+
+<h3 id="ws-favorites-use">Insert or run a favorite</h3>
+<ul>
+<li><strong>Panel</strong> — expand a folder, click a row to insert, or use run actions from the panel toolbar.</li>
+<li><strong>Drag</strong> — drag a favorite into the editor to insert at the drop position.</li>
+<li><strong>Autocomplete</strong> — type the favorite name or shortcut at the start of a line (or after <code>;</code>); pick the row marked as a user favorite to expand the full SQL.</li>
+<li><strong>Keyboard</strong> — <em>★ Favorites: Insert Query</em> (<code>mysql.favorite.insert</code>): default <kbd>⌘</kbd>+<kbd>K</kbd> then <kbd>F</kbd> (see <a href="keyboard-shortcuts.html#kbd-defaults">shortcuts</a>).</li>
+<li><strong>Manage</strong> — <em>★ Favorites: Manage</em> renames, folders, and deletes without leaving VS Code.</li>
+</ul>
+<p>Example snippet worth starring (safe read-only pattern):</p>
+<pre><code>SELECT emp_no, first_name, last_name, hire_date
+FROM employees.employees
+ORDER BY hire_date DESC
+LIMIT 100;</code></pre>
+
+<h2 id="ws-run-explain">Run, EXPLAIN &amp; Optimize</h2>
+<p>Use <a href="#ws-codelens-statement">CodeLens</a> or the <a href="#ws-editor-context">right‑click menu</a> to work with the statement at your caret:</p>
+<ul>
+<li><strong>▶ Run SQL</strong> (CodeLens) or <strong>Run SQL Query</strong> (menu) — executes one statement; rows appear in <strong>Query Results</strong> (see <a href="#ws-panels">panels</a> below).</li>
+<li><strong>Run All Queries</strong> — menu or shortcut only; runs every statement in the file in order.</li>
+<li><strong>Explain Query</strong> — right‑click or Command Palette; sends <code>EXPLAIN</code> or <code>EXPLAIN ANALYZE</code> when supported.</li>
+<li><strong>⚡ Optimize</strong> (CodeLens) or <strong>Optimize Query (Visual Explain)</strong> (menu) — opens the <a href="query-optimizer.html">Query Optimizer</a> workbench with Visual Explain and index suggestions.</li>
+</ul>
+<p>Place the caret inside this statement, then use <strong>▶ Run SQL</strong>, <strong>Explain Query</strong>, or <strong>⚡ Optimize</strong>:</p>
+<pre><code>SELECT
+    e.emp_no,
+    e.first_name,
+    e.last_name,
+    d.dept_name
+FROM employees.employees AS e
+INNER JOIN employees.dept_emp AS de
+    ON de.emp_no = e.emp_no AND de.to_date = '9999-01-01'
+INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+WHERE e.last_name LIKE 'K%'
+ORDER BY d.dept_name, e.last_name
+LIMIT 50;</code></pre>
+<figure class="doc-media doc-media--gif">
+<img src="../images/query-optimizer-visual-explain-demo.gif" width="720" alt="Animated demo: Visual Explain plan tree from the Query Optimizer." loading="lazy" decoding="async" />
+<figcaption class="caption">Visual Explain — plan tree and step detail from <strong>EXPLAIN</strong> / <strong>Optimize</strong> CodeLens.</figcaption>
+</figure>
+<figure class="doc-media doc-media--gif">
+<img src="../images/query-optimizer-workbench-demo.gif" width="720" alt="Animated demo: Query Optimizer workbench with index suggestions." loading="lazy" decoding="async" />
+<figcaption class="caption">Query Optimizer workbench — index suggestions and review after <strong>Optimize</strong>.</figcaption>
+</figure>
+
+<h2 id="ws-panels">Query Results, SQL Status &amp; side panels</h2>
+<p>Result sets appear in the <strong>Query Results</strong> view (grid or tab per <a href="../settings.html#settings-exec"><code>skyline-mysql.resultDisplayMode</code></a>). Status messages, notices and client errors show in the SQL / MySQL output channel. Pin panels next to the editor when you want results visible while editing the next statement.</p>
+<div class="callout tip"><div class="label">Tip</div><p>Use the panel’s toolbar to export CSV, tune column layout, or re-run without leaving the dock.</p></div>
+
+<h2 id="ws-tree-search">Tree search</h2>
+<p>Use the filter at the top of the explorer to fuzzy‑find a table, view or routine across all databases on the connection.</p>
+
+<h2 id="ws-sql-examples">Sample queries</h2>
+<p>These examples use the public <strong>employees</strong> sample schema (MySQL <code>employees</code> database). Adjust schema/table names if your server uses a different database name. Pair with <a href="query-builder.html">Query builder</a> drags or <a href="ai-llm-integration.html">SQL with AI</a> to build variants faster.</p>
+
+<h3 id="ws-examples-probe">Connection probe</h3>
+<p>Run after connecting to confirm the database is reachable:</p>
+<pre><code>SELECT 1;
+
+SELECT COUNT(*) AS employee_rows
+FROM employees.employees;</code></pre>
+
+<h3 id="ws-examples-select">Simple SELECT</h3>
+<p>List ten employees with name and hire date — use <strong>▶ Run SQL</strong> on this block:</p>
+<pre><code>SELECT
+    emp_no,
+    first_name,
+    last_name,
+    hire_date
+FROM employees.employees
+ORDER BY hire_date DESC
+LIMIT 10;</code></pre>
+
+<h3 id="ws-examples-joins">Joins (department per employee)</h3>
+<p>Current assignment uses <code>to_date = '9999-01-01'</code> in the sample data. Good for <strong>⚡ Optimize</strong> and JOIN autocomplete demos:</p>
+<pre><code>SELECT
+    e.emp_no,
+    e.first_name,
+    e.last_name,
+    d.dept_name
+FROM employees.employees AS e
+INNER JOIN employees.dept_emp AS de
+    ON de.emp_no = e.emp_no AND de.to_date = '9999-01-01'
+INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+WHERE e.last_name LIKE 'K%'
+ORDER BY d.dept_name, e.last_name
+LIMIT 50;</code></pre>
+<h4 id="ws-examples-joins-avg">Average salary by department</h4>
+<pre><code>SELECT
+    d.dept_name,
+    ROUND(AVG(s.salary), 2) AS avg_salary
+FROM employees.salaries AS s
+INNER JOIN employees.employees AS e ON e.emp_no = s.emp_no
+INNER JOIN employees.dept_emp AS de
+    ON de.emp_no = e.emp_no AND de.to_date = '9999-01-01'
+INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+WHERE s.to_date = '9999-01-01'
+GROUP BY d.dept_name
+ORDER BY avg_salary DESC;</code></pre>
+
+<h3 id="ws-examples-subquery">Subquery (salary above company average)</h3>
+<pre><code>SELECT
+    e.first_name,
+    e.last_name,
+    s.salary
+FROM employees.employees AS e
+INNER JOIN employees.salaries AS s
+    ON s.emp_no = e.emp_no AND s.to_date = '9999-01-01'
+WHERE s.salary &gt; (
+    SELECT AVG(s2.salary)
+    FROM employees.salaries AS s2
+    WHERE s2.to_date = '9999-01-01'
+)
+ORDER BY s.salary DESC
+LIMIT 25;</code></pre>
+
+<h3 id="ws-examples-cte">CTE (salary above department average)</h3>
+<pre><code>WITH dept_avg AS (
+    SELECT
+        de.dept_no,
+        ROUND(AVG(s.salary), 2) AS avg_salary
+    FROM employees.salaries AS s
+    INNER JOIN employees.employees AS e ON e.emp_no = s.emp_no
+    INNER JOIN employees.dept_emp AS de
+        ON de.emp_no = e.emp_no AND de.to_date = '9999-01-01'
+    WHERE s.to_date = '9999-01-01'
+    GROUP BY de.dept_no
+)
+SELECT
+    e.emp_no,
+    e.first_name,
+    e.last_name,
+    d.dept_name,
+    s.salary,
+    da.avg_salary
+FROM employees.employees AS e
+INNER JOIN employees.salaries AS s
+    ON s.emp_no = e.emp_no AND s.to_date = '9999-01-01'
+INNER JOIN employees.dept_emp AS de
+    ON de.emp_no = e.emp_no AND de.to_date = '9999-01-01'
+INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+INNER JOIN dept_avg AS da ON da.dept_no = de.dept_no
+WHERE s.salary &gt; da.avg_salary
+ORDER BY s.salary DESC
+LIMIT 40;</code></pre>
+
+<h3 id="ws-examples-dml">DML patterns (review before run)</h3>
+<p>Use on a sandbox database only. Type <span class="kbd">ins</span> / <span class="kbd">u</span> / <span class="kbd">del</span> before dragging tables in the <a href="query-builder.html">Query builder</a>, or paste these templates:</p>
+<h4>INSERT</h4>
+<pre><code>INSERT INTO employees.departments (dept_no, dept_name)
+VALUES ('d010', 'AI Research');</code></pre>
+<h4>UPDATE</h4>
+<pre><code>UPDATE employees.employees
+SET first_name = 'Ann'
+WHERE emp_no = 10001;</code></pre>
+<h4>DELETE</h4>
+<pre><code>DELETE FROM employees.departments
+WHERE dept_no = 'd010';</code></pre>
+
+<h3 id="ws-examples-delimiter">DELIMITER blocks (procedures, functions, triggers)</h3>
+<p>MySQL client tools change the statement terminator so semicolons inside <code>BEGIN … END</code> are allowed. SQLLens.AI treats everything from an opening <code>DELIMITER &lt;token&gt;</code> through <code>DELIMITER ;</code> as <strong>one unit</strong>. Use <strong>▶ RUN PLSQL Block</strong> on the opening <code>DELIMITER</code> line (see <a href="#ws-codelens-delimiter">DELIMITER &amp; stored‑program blocks</a>).</p>
+
+<h4 id="ws-examples-delimiter-proc">Stored procedure (<code>//</code> token)</h4>
+<pre><code>DELIMITER //
+DROP PROCEDURE IF EXISTS list_dept_headcount //
+CREATE PROCEDURE list_dept_headcount(IN p_dept_no CHAR(4))
+BEGIN
+  SELECT d.dept_name, COUNT(*) AS headcount
+  FROM employees.dept_emp AS de
+  INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+  WHERE de.dept_no = p_dept_no
+    AND de.to_date = '9999-01-01'
+  GROUP BY d.dept_name;
+END //
+DELIMITER ;
+
+-- Run separately after the block is created:
+CALL list_dept_headcount('d001');</code></pre>
+
+<h4 id="ws-examples-delimiter-func">Function (<code>$$</code> token)</h4>
+<pre><code>DELIMITER $$
+DROP FUNCTION IF EXISTS current_title$$
+CREATE FUNCTION current_title(p_emp_no INT)
+RETURNS VARCHAR(50)
+READS SQL DATA
+BEGIN
+  DECLARE v_title VARCHAR(50);
+  SELECT t.title INTO v_title
+  FROM employees.titles AS t
+  WHERE t.emp_no = p_emp_no
+    AND t.to_date = '9999-01-01'
+  ORDER BY t.from_date DESC
+  LIMIT 1;
+  RETURN v_title;
+END$$
+DELIMITER ;
+
+SELECT emp_no, current_title(10001) AS title FROM employees.employees LIMIT 5;</code></pre>
+
+<h4 id="ws-examples-delimiter-trig">Trigger (<code>$$</code> token)</h4>
+<p>Use on a sandbox table only — adjust the table name if needed:</p>
+<pre><code>DELIMITER $$
+DROP TRIGGER IF EXISTS employees.trg_employees_trim_name$$
+CREATE TRIGGER trg_employees_trim_name
+BEFORE UPDATE ON employees.employees
+FOR EACH ROW
+BEGIN
+  SET NEW.last_name = TRIM(NEW.last_name);
+  SET NEW.first_name = TRIM(NEW.first_name);
+END$$
+DELIMITER ;</code></pre>
+
+<h4 id="ws-examples-delimiter-mixed">Mixed file: plain SQL + DELIMITER block</h4>
+<p>Regular statements end with <code>;</code>. The routine block keeps inner semicolons — do not rely on <strong>Run All</strong> for the whole file when a <code>DELIMITER</code> section is present; run the probe query, then <strong>▶ RUN PLSQL Block</strong> on the opening <code>DELIMITER</code> line, then <code>CALL</code>:</p>
+<pre><code>SELECT COUNT(*) AS employee_rows FROM employees.employees;
+
+DELIMITER //
+CREATE PROCEDURE list_dept_headcount(IN p_dept_no CHAR(4))
+BEGIN
+  SELECT d.dept_name, COUNT(*) AS headcount
+  FROM employees.dept_emp AS de
+  INNER JOIN employees.departments AS d ON d.dept_no = de.dept_no
+  WHERE de.dept_no = p_dept_no AND de.to_date = '9999-01-01'
+  GROUP BY d.dept_name;
+END //
+DELIMITER ;
+
+CALL list_dept_headcount('d005');</code></pre>
+
+<h3 id="ws-examples-multi">Multiple statements in one file</h3>
+<p>Use <strong>Run All Queries</strong> (<kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>↵</kbd>) to execute each statement in order; status for each appears in <strong>SQL STATUS</strong>:</p>
+<pre><code>SELECT COUNT(*) AS n FROM employees.employees;
+
+SELECT COUNT(*) AS n FROM employees.departments;
+
+SELECT COUNT(*) AS n FROM employees.salaries WHERE to_date = '9999-01-01';</code></pre>
+
+<h3 id="ws-examples-exists">EXISTS (engineers with a current title)</h3>
+<pre><code>SELECT e.emp_no, e.first_name, e.last_name
+FROM employees.employees AS e
+WHERE EXISTS (
+    SELECT 1
+    FROM employees.titles AS t
+    WHERE t.emp_no = e.emp_no
+      AND t.to_date = '9999-01-01'
+      AND t.title LIKE '%Engineer%'
+)
+ORDER BY e.emp_no
+LIMIT 50;</code></pre>
+
+<h2 id="ws-related">Related</h2>
+<ul>
+  <li><a href="query-builder.html">Query builder</a></li>
+  <li><a href="ai-llm-integration.html">LLMs &amp; AI</a></li>
+  <li><a href="../settings.html">Settings reference</a></li>
+  <li><a href="schema-and-objects.html">Schema &amp; database objects</a></li>
+  <li><a href="data-and-schema-tools.html">Data import, export &amp; schema tools</a></li>
+</ul>
+
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>

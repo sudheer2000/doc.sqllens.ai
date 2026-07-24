@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LLMs & AI · SQLLens.AI Docs</title>
+<meta name="description" content="Generate, fix and explain SQL using your provider of choice — with control over what schema context is shared." />
+<script src="../js/docs-mount-prefix.js"></script>
+<link rel="stylesheet" href="../css/docs.css" />
+</head>
+<body>
+<header class="doc-header">
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <a class="brand" href="../index.html"><span class="dot"></span>SQLLens.AI Docs</a>
+  <div class="doc-search" id="docSearch">
+    <span class="icon">⌕</span>
+    <input type="search" placeholder="Search docs…" aria-label="Search docs" />
+    <span class="kbd-hint">⌘K</span>
+    <div class="results" role="listbox"></div>
+  </div>
+  <button class="icon-btn" id="pdfBtn" title="Download as PDF" aria-label="Download as PDF">⤓</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="doc-shell">
+  <aside class="doc-sidebar">
+    <input id="navFilter" class="nav-filter" type="search" placeholder="Filter navigation…" />
+    <ul class="doc-nav" id="docNav"></ul>
+  </aside>
+  <main class="doc-main">
+    <nav class="doc-crumbs"><a href="../index.html">Docs</a><span>›</span><span>LLMs & AI</span></nav>
+    <header class="doc-hero">
+      <div class="eyebrow">Pillar</div>
+      <h1>LLMs & AI</h1>
+      <p class="lede">Generate, fix and explain SQL using your provider of choice — with control over what schema context is shared.</p>
+    </header>
+    
+<h2 id="ailm-overview">Overview</h2><p>SQLLens.AI adds AI affordances throughout: a <em>Generate SQL</em> CodeLens above empty regions, a <em>Fix with AI</em> action on errors, natural‑language prompts via <code>@AI</code>, and an assist panel for longer conversations.</p>
+<h2 id="ailm-enable">Enable / disable AI</h2><p>Toggle <code>skyline-mysql.ai.enabled</code> in <a href="../settings.html#settings-ai">Settings → AI</a>. When off, AI CodeLens entries disappear and the assist panel is hidden.</p>
+<h2 id="ailm-providers">Providers &amp; models</h2><p>Supported providers include OpenRouter, Groq, Grok, OpenAI, Anthropic, Ollama, and any OpenAI‑compatible <em>custom endpoint</em>. Pick a default model per provider; the assist panel lets you switch on the fly.</p><figure class="doc-media doc-media--gif">
+<img src="../images/ai-integration-demo.gif" width="720" alt="Animated demo: AI provider and model settings in SQLLens.AI." loading="lazy" decoding="async" />
+<figcaption class="caption">Provider picker and model selection in Settings.</figcaption>
+</figure>
+<h2 id="ailm-keys">API keys &amp; accounts</h2><p>Keys live in VS Code's Secret Storage, never in <code>settings.json</code>. If you've signed in to <a href="cloud-account.html">sqllens.ai</a>, you can opt into managed routing and skip per‑provider keys.</p>
+<h2 id="ailm-privacy">Schema context &amp; privacy</h2><p>You decide how much table metadata can accompany prompts: see <code>skyline-mysql.ai.schemaContextMode</code> (structure-only vs none) and <code>skyline-mysql.ai.includeSchemaContext</code> (legacy off switch). Row data is never sent to cloud models.</p><div class="callout note"><div class="label">Note</div><p>Even with full schema context, only the names and types of objects referenced by the active query are included — not the whole database.</p></div>
+<h2 id="ailm-codelens">From the editor (CodeLens)</h2><p><em>Generate SQL</em> appears on empty regions and turns a comment like <code>-- top 10 customers last month</code> into a query. <em>Fix with AI</em> appears on the gutter when a statement fails.</p>
+<h2 id="ailm-palette-panel">Command Palette &amp; panel</h2><p>Run <em>SQL: Ask AI</em> from the palette to open the assist panel. Use <code>@AI explain</code>, <code>@AI optimize</code>, or <code>@AI fix</code> inline.</p>
+<h2 id="ailm-create-objects">Create DB objects with AI</h2><p>Right‑click a database in the tree and choose <em>Create with AI →</em> table, view, procedure or trigger. The wizard previews the DDL before running.</p>
+<h2 id="ailm-troubleshoot">Troubleshooting</h2><ul><li><strong>"AI disabled"</strong> — enable <code>skyline-mysql.ai.enabled</code>.</li><li><strong>Rate limited</strong> — switch provider or wait the cool‑down shown in the panel.</li><li><strong>Connection error</strong> — check the endpoint URL and that your network allows it.</li></ul>
+<h2 id="ailm-demo">Demo</h2><figure class="doc-media doc-media--gif">
+<img src="../images/ai-integration-demo-v4.gif" width="720" alt="Animated demo: Generate SQL with AI from the editor." loading="lazy" decoding="async" />
+<figcaption class="caption">Generate SQL with AI — provider pick and SELECT generation.</figcaption>
+</figure>
+
+    <div class="prev-next" id="prevNext"></div>
+    <section class="feedback" id="feedback">
+      <h4>Was this page helpful?</h4>
+      <div class="prompt row">
+        <button class="btn" data-vote="up">👍 Yes</button>
+        <button class="btn" data-vote="down">👎 No</button>
+        <span style="font-size:12px;color:var(--fg-dim);margin-left:.5rem">Your feedback stays on this device.</span>
+      </div>
+      <div class="detail" style="display:none">
+        <textarea placeholder="What worked, what didn't, what's missing?"></textarea>
+        <div class="row" style="margin-top:.5rem">
+          <button class="btn primary" data-submit>Send feedback</button>
+        </div>
+      </div>
+      <div class="thanks" style="display:none">Thanks — we logged your feedback for this page.</div>
+    </section>
+  </main>
+  <aside class="doc-toc" id="docToc"></aside>
+</div>
+
+<footer class="doc-site-footer" aria-label="Site footer">
+  <div class="doc-site-footer__inner">
+    <div class="doc-site-footer__grid">
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">SQLLens.AI</p>
+        <p class="doc-site-footer__muted">MySQL and MariaDB tools for VS Code — from the makers of sqllens.ai.</p>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Documentation</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../get-started.html">Get started</a></li>
+          <li><a href="../connect-db.html">Connect database</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Reference</p>
+        <ul class="doc-site-footer__list">
+          <li><a href="https://github.com/sudheer2000/skylinemysql" target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href="https://github.com/sudheer2000/skylinemysql/issues" target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=skylineai.sqllens" target="_blank" rel="noopener noreferrer">VS Marketplace</a></li>
+          <li><a href="https://skylineai.app" target="_blank" rel="noopener noreferrer">Skyline AI website</a></li>
+          <li><a href="mailto:hello@skylineai.app">Support email</a></li>
+        </ul>
+      </div>
+      <div class="doc-site-footer__col">
+        <p class="doc-site-footer__heading">Technical</p>
+        <ul class="doc-site-footer__list">
+          <li><span class="doc-site-footer__muted">Extension:</span> <code>skylineai.sqllens</code></li>
+          <li><span class="doc-site-footer__muted">Settings prefix:</span> <code>skyline-mysql.*</code></li>
+        </ul>
+      </div>
+    </div>
+    <p class="doc-site-footer__bottom">Documentation for SQLLens.AI.</p>
+  </div>
+</footer>
+
+<script src="../js/docs.js"></script>
+</body>
+</html>
